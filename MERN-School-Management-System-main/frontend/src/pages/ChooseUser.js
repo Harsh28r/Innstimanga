@@ -62,6 +62,31 @@ const ChooseUser = ({ visitor }) => {
         navigate('/Teacherlogin');
       }
     }
+
+    else if (user === "Super Admin") {
+      if (visitor === "guest") {
+        const email = "superadmin@example.com"
+        const fields = { email, password }
+        setLoader(true)
+        dispatch(loginUser(fields, user))
+      }
+      else {
+        navigate('/SuperAdminDashboard');
+      }
+    }
+
+    else if (user === "Parent") {
+      if (visitor === "guest") {
+        const parentEmail = "parent@example.com"
+        const studentName = "Child's Name"
+        const fields = { parentEmail, studentName, password }
+        setLoader(true)
+        dispatch(loginUser(fields, user))
+      }
+      else {
+        navigate('/Parentslogin');
+      }
+    }
   }
 
   useEffect(() => {
@@ -93,7 +118,7 @@ const ChooseUser = ({ visitor }) => {
                   <AccountCircle fontSize="large" />
                 </Box>
                 <StyledTypography>
-                  Admin
+                 Institute Admin
                 </StyledTypography>
                 Login as an administrator to access the dashboard to manage app data.
               </StyledPaper>
@@ -122,6 +147,32 @@ const ChooseUser = ({ visitor }) => {
                   Teacher
                 </StyledTypography>
                 Login as a teacher to create courses, assignments, and track student progress.
+              </div>
+            </StyledPaper>
+          </Grid>
+          <Grid item xs={12} sm={6} md={4}>
+            <div onClick={() => navigateHandler("Super Admin")}>
+              <StyledPaper elevation={3}>
+                <Box mb={2}>
+                  <AccountCircle fontSize="large" />
+                </Box>
+                <StyledTypography>
+                  Super Admin
+                </StyledTypography>
+                Login as a super administrator to manage all aspects of the system.
+              </StyledPaper>
+            </div>
+          </Grid>
+          <Grid item xs={12} sm={6} md={4}>
+            <StyledPaper elevation={3}>
+              <div onClick={() => navigateHandler("Parent")}>
+                <Box mb={2}>
+                  <Group fontSize="large" />
+                </Box>
+                <StyledTypography>
+                  Parent
+                </StyledTypography>
+                Login as a parent to view child's progress and communicate with teachers.
               </div>
             </StyledPaper>
           </Grid>

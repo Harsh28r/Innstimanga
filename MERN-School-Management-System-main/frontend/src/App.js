@@ -7,7 +7,9 @@ import StudentDashboard from './pages/student/StudentDashboard';
 import TeacherDashboard from './pages/teacher/TeacherDashboard';
 import LoginPage from './pages/LoginPage';
 import AdminRegisterPage from './pages/admin/AdminRegisterPage';
+import  ParentsRegisterPage  from './pages/parents/ParentsRegisterPage'
 import ChooseUser from './pages/ChooseUser';
+import SuperAdminDashboard from './pages/Superadmin/superadminDashboard'
 
 const App = () => {
   const { currentRole } = useSelector(state => state.user);
@@ -22,11 +24,18 @@ const App = () => {
 
           <Route path="/Adminlogin" element={<LoginPage role="Admin" />} />
           <Route path="/Studentlogin" element={<LoginPage role="Student" />} />
-          <Route path="/Teacherlogin" element={<LoginPage role="Teacher" />} />
+          <Route path="/Teacherlogin" element={<LoginPage role="Teacher " />} />
+          <Route path="/Parentslogin" element={<LoginPage role=" Parent" />} />
 
-          <Route path="/Adminregister" element={<AdminRegisterPage />} />
+
+          <Route path="/Adminregister" element={<AdminRegisterPage  />} />
+          <Route path="/Parentsregister" element={<  ParentsRegisterPage />} />
+          {/* <Route path="/ Super-AdminDashboard" element={<   SuperAdminDashboard/>} /> */}
+
+          
 
           <Route path='*' element={<Navigate to="/" />} />
+          <Route path="/SuperAdminDashboard/*" element={<SuperAdminDashboard />} />
         </Routes>}
 
       {currentRole === "Admin" &&
@@ -44,6 +53,19 @@ const App = () => {
       {currentRole === "Teacher" &&
         <>
           <TeacherDashboard />
+        </>
+      }
+      
+      {currentRole === "Parents" &&
+        <>
+          <TeacherDashboard />
+          
+        </>
+      }
+       {currentRole === "superadmin" &&
+        <>
+       
+          <   SuperAdminDashboard/>
         </>
       }
     </Router>

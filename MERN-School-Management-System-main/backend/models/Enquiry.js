@@ -10,4 +10,6 @@ const enquirySchema = new mongoose.Schema({
   date: Date,
 });
 
-module.exports = mongoose.model('Enquiry', enquirySchema);
+const Enquiry = mongoose.model('Enquiry', enquirySchema);
+
+module.exports = Enquiry;

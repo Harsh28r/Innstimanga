@@ -6,6 +6,8 @@ const dotenv = require("dotenv")
 const app = express()
 const Routes = require("./routes/route.js")
 const Fee = require('./models/Fee') // Import the Fee model
+const Enquiry = require('./models/Enquiry.js')
+const authRoutes = require('./routes/auth');
 
 const PORT = process.env.PORT || 5000
 
@@ -41,6 +43,51 @@ app.get('/api/fees', async (req, res) => {
         res.json(fees);
     } catch (error) {
         res.status(500).json({ message: "Error fetching fees data" });
+    }
+});
+//  Enquiry
+app.get('/enquiry', async (req, res) => {
+    try {
+        const enquiry = await Enquiry.find(); // Fetch fees from MongoDB
+        res.json(enquiry);
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching fees data" });
+    }
+});
+
+  app.get('/enquiry', async (req, res) => {
+    try {
+      const enquiries = await Enquiry.find();
+      res.send(enquiries);
+    } catch (error) {
+      res.status(500).send(error);
+    }
+  });
+
+
+app.post('/api/fees', async (req, res) => {
+    const { studentName, amount, status, feeType, dueDate, grade } = req.body;
+
+    // Validate the incoming data
+    if (!studentName || !amount || !status || !feeType || !dueDate || !grade) {
+        return res.status(400).json({ message: 'All fields are required.' });
+    }
+
+    try {
+        const newFee = new Fee({
+            studentName,
+            amount,
+            status,
+            feeType,
+            dueDate,
+            grade,
+        });
+
+        const savedFee = await newFee.save();
+        res.status(201).json(savedFee);
+    } catch (error) {
+        console.error("Error adding fee:", error);
+        res.status(500).json({ message: 'Server error' });
     }
 });
 
@@ -79,6 +126,7 @@ mongoose
     .catch((err) => console.log("NOT CONNECTED TO NETWORK", err))
 
 app.use('/', Routes);
+app.use('/auth', authRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

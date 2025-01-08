@@ -1,18 +1,19 @@
+import * as React from 'react';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { Button, Grid, Box, Typography, Paper, Checkbox, FormControlLabel, TextField, CssBaseline, IconButton, InputAdornment, CircularProgress, Backdrop } from '@mui/material';
+import { Grid, Box, Typography, Paper, Checkbox, FormControlLabel, TextField, CssBaseline, IconButton, InputAdornment, CircularProgress} from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
-import bgpic from "../assets/designlogin.jpg"
-import { LightPurpleButton } from '../components/buttonStyles';
+import bgpic from "../../assets/designlogin.jpg"
+import { LightPurpleButton } from '../../components/buttonStyles';
+import { registerUser } from '../../redux/ParentsRelated/ParentsHandle';
 import styled from 'styled-components';
-import { loginUser } from '../redux/userRelated/userHandle';
-import Popup from '../components/Popup';
+import Popup from '../../components/Popup';
 
 const defaultTheme = createTheme();
 
-const LoginPage = ({ role }) => {
+const ParentsRegisterPage = () => {
 
     const dispatch = useDispatch()
     const navigate = useNavigate()
@@ -20,79 +21,69 @@ const LoginPage = ({ role }) => {
     const { status, currentUser, response, error, currentRole } = useSelector(state => state.user);;
 
     const [toggle, setToggle] = useState(false)
-    const [guestLoader, setGuestLoader] = useState(false)
     const [loader, setLoader] = useState(false)
     const [showPopup, setShowPopup] = useState(false);
     const [message, setMessage] = useState("");
 
     const [emailError, setEmailError] = useState(false);
     const [passwordError, setPasswordError] = useState(false);
-    const [rollNumberError, setRollNumberError] = useState(false);
-    const [studentNameError, setStudentNameError] = useState(false);
-    const [aadharCard, setAadharCard] = useState("");
-    const [aadharCardError, setAadharCardError] = useState(false);
-    const [childRollNumber, setChildRollNumber] = useState("");
-    const [childRollNumberError, setChildRollNumberError] = useState(false);
+    const [adminNameError, setAdminNameError] = useState(false);
+    const [childRollNoError, setChildRollNoError] = useState(false);
+    const [aadharNoError, setAadharNoError] = useState(false);
+    const role = "Admin"
 
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         event.preventDefault();
 
-        if (role === "Admin") {
-            const email = event.target.email.value;
-            const password = event.target.password.value;
+        const name = event.target.adminName.value;
+        const email = event.target.email.value;
+        const password = event.target.password.value;
+        const childRollNo = event.target.childRollNo.value;
+        const aadharNo = event.target.aadharNo.value;
 
-            if (!email || !password) {
-                if (!email) setEmailError(true);
-                if (!password) setPasswordError(true);
-                return;
-            }
+        const role = "Parent";
 
-            const fields = { email, password };
-            setLoader(true);
-            dispatch(loginUser(fields, role));
+        console.log("Form Data:", { name, email, password, role, childRollNo, aadharNo });
+
+        if (!name || !email || !password || !childRollNo || !aadharNo) {
+            console.log("Form data incomplete. Please fill in all fields.");
+            return;
         }
+
+        const fields = { name, email, password, role, childRollNo, aadharNo };
+        setLoader(true);
+
+        try {
+            console.log("Attempting to register user with data:", fields);
+            const response = await registerUser(fields, role);
+
+            console.log("Registration response:", response);
+
+            if (response.success) {
+                setMessage("Registration successful");
+            } else {
+                setMessage(response.message);
+            }
+        } catch (error) {
+            console.error("Error during registration:", error);
+            setMessage("An error occurred during registration");
+        }
+
+        setLoader(false);
     };
 
     const handleInputChange = (event) => {
         const { name, value } = event.target;
         if (name === 'email') setEmailError(false);
         if (name === 'password') setPasswordError(false);
+        if (name === 'adminName') setAdminNameError(false);
+        if (name === 'childRollNo') setChildRollNoError(false);
+        if (name === 'aadharNo') setAadharNoError(false);
     };
 
-    const guestModeHandler = () => {
-        const password = "zxc"
-
-        if (role === "Admin") {
-            const email = "yogendra@12"
-            const fields = { email, password }
-            setGuestLoader(true)
-            dispatch(loginUser(fields, role))
-        }
-        else if (role === "Student") {
-            const rollNum = "1"
-            const studentName = "Dipesh Awasthi"
-            const fields = { rollNum, studentName, password }
-            setGuestLoader(true)
-            dispatch(loginUser(fields, role))
-        }
-        else if (role === "Teacher") {
-            const email = "tony@12"
-            const fields = { email, password }
-            setGuestLoader(true)
-            dispatch(loginUser(fields, role))
-        }
-    }
-
     useEffect(() => {
-        if (status === 'success' || currentUser !== null) {
-            if (currentRole === 'Admin') {
-                navigate('/Admin/dashboard');
-            }
-            else if (currentRole === 'Student') {
-                navigate('/Student/dashboard');
-            } else if (currentRole === 'Teacher') {
-                navigate('/Teacher/dashboard');
-            }
+        if (status === 'success' || (currentUser !== null && currentRole === 'Admin')) {
+            navigate('/Admin/dashboard');
         }
         else if (status === 'failed') {
             setMessage(response)
@@ -100,12 +91,9 @@ const LoginPage = ({ role }) => {
             setLoader(false)
         }
         else if (status === 'error') {
-            setMessage("Network Error")
-            setShowPopup(true)
-            setLoader(false)
-            setGuestLoader(false)
+            console.log(error)
         }
-    }, [status, currentRole, navigate, error, response, currentUser]);
+    }, [status, currentUser, currentRole, navigate, error, response]);
 
     return (
         <ThemeProvider theme={defaultTheme}>
@@ -121,20 +109,39 @@ const LoginPage = ({ role }) => {
                             alignItems: 'center',
                         }}
                     >
-                        <Typography variant="h4" sx={{ mt: 5, mb: 3 }}>
-                            Admin Login
+                        <Typography variant="h4" sx={{ mb: 2, color: "#2c2143" }}>
+                            Parents Register
+                        </Typography>
+                        <Typography variant="h7">
+                            Create your own school by registering as an admin.
+                            <br />
+                            You will be able to add students and faculty and
+                            manage the system.
                         </Typography>
                         <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 2 }}>
                             <TextField
                                 margin="normal"
                                 required
                                 fullWidth
+                                id="adminName"
+                                label="Enter your name"
+                                name="adminName"
+                                autoComplete="name"
+                                autoFocus
+                                error={adminNameError}
+                                helperText={adminNameError && 'Name is required'}
+                                onChange={handleInputChange}
+                            />
+                            <TextField
+                                margin="normal"
+                                required
+                                fullWidth
                                 id="email"
-                                label="Email Address"
+                                label="Enter your email"
                                 name="email"
                                 autoComplete="email"
                                 error={emailError}
-                                helperText={emailError && "Email is required"}
+                                helperText={emailError && 'Email is required'}
                                 onChange={handleInputChange}
                             />
                             <TextField
@@ -163,57 +170,54 @@ const LoginPage = ({ role }) => {
                                     ),
                                 }}
                             />
+                            <TextField
+                                margin="normal"
+                                required
+                                fullWidth
+                                id="childRollNo"
+                                label="Enter child's Roll Number"
+                                name="childRollNo"
+                                autoComplete="off"
+                                error={childRollNoError}
+                                helperText={childRollNoError && 'Child Roll Number is required'}
+                                onChange={handleInputChange}
+                            />
+                            <TextField
+                                margin="normal"
+                                required
+                                fullWidth
+                                id="aadharNo"
+                                label="Enter parent's Aadhar Number"
+                                name="aadharNo"
+                                autoComplete="off"
+                                error={aadharNoError}
+                                helperText={aadharNoError && 'Aadhar Number is required'}
+                                onChange={handleInputChange}
+                            />
                             <Grid container sx={{ display: "flex", justifyContent: "space-between" }}>
                                 <FormControlLabel
                                     control={<Checkbox value="remember" color="primary" />}
                                     label="Remember me"
                                 />
-                                <StyledLink href="#">
-                                    Forgot password?
-                                </StyledLink>
                             </Grid>
                             <LightPurpleButton
                                 type="submit"
                                 fullWidth
                                 variant="contained"
-                                sx={{ mt: 3 }}
+                                sx={{ mt: 3, mb: 2 }}
                             >
-                                {loader ?
-                                    <CircularProgress size={24} color="inherit" />
-                                    : "Login"}
+                                {loader ? <CircularProgress size={24} color="inherit"/> : "Register"}
                             </LightPurpleButton>
-                            <Button
-                                fullWidth
-                                onClick={guestModeHandler}
-                                variant="outlined"
-                                sx={{ mt: 2, mb: 3, color: "#7f56da", borderColor: "#7f56da" }}
-                            >
-                                Login as Guest
-                            </Button>
-                            {role === "Admin" &&
-                                <Grid container>
-                                    <Grid>
-                                        Don't have an account?
-                                    </Grid>
-                                    <Grid item sx={{ ml: 2 }}>
-                                        <StyledLink to="/Adminregister">
-                                            Sign up
-                                        </StyledLink>
-                                    </Grid>
+                            <Grid container>
+                                <Grid>
+                                    Already have an account?
                                 </Grid>
-                            }
-                            {role === "Parent" &&
-                                <Grid container>
-                                    <Grid>
-                                        Don't have an account?
-                                    </Grid>
-                                    <Grid item sx={{ ml: 2 }}>
-                                        <StyledLink to="/ParentRegister">
-                                            Sign up
-                                        </StyledLink>
-                                    </Grid>
+                                <Grid item sx={{ ml: 2 }}>
+                                    <StyledLink to="/Adminlogin">
+                                        Log in
+                                    </StyledLink>
                                 </Grid>
-                            }
+                            </Grid>
                         </Box>
                     </Box>
                 </Grid>
@@ -232,19 +236,12 @@ const LoginPage = ({ role }) => {
                     }}
                 />
             </Grid>
-            <Backdrop
-                sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
-                open={guestLoader}
-            >
-                <CircularProgress color="primary" />
-                Please Wait
-            </Backdrop>
             <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
         </ThemeProvider>
     );
 }
 
-export default LoginPage
+export default ParentsRegisterPage
 
 const StyledLink = styled(Link)`
   margin-top: 9px;

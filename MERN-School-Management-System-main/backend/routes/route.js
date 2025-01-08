@@ -7,6 +7,7 @@ const { adminRegister, adminLogIn, getAdminDetail} = require('../controllers/adm
 
 const { sclassCreate, sclassList, deleteSclass, deleteSclasses, getSclassDetail, getSclassStudents } = require('../controllers/class-controller.js');
 const { complainCreate, complainList } = require('../controllers/complain-controller.js');
+const registerController = require('../controllers/parents-conntroller.js');
 const { noticeCreate, noticeList, deleteNotices, deleteNotice, updateNotice } = require('../controllers/notice-controller.js');
 const {
     studentRegister,
@@ -26,7 +27,7 @@ const {
 const { subjectCreate, classSubjects, deleteSubjectsByClass, getSubjectDetail, deleteSubject, freeSubjectList, allSubjects, deleteSubjects } = require('../controllers/subject-controller.js');
 const { teacherRegister, teacherLogIn, getTeachers, getTeacherDetail, deleteTeachers, deleteTeachersByClass, deleteTeacher, updateTeacherSubject, teacherAttendance } = require('../controllers/teacher-controller.js');
 const Fee = require('../models/Fee'); // Import the Fee model
-
+const userController = require('../controllers/userController.js');
 // Admin
 router.post('/AdminReg', adminRegister);
 router.post('/AdminLogin', adminLogIn);
@@ -35,6 +36,12 @@ router.get("/Admin/:id", getAdminDetail)
 // router.delete("/Admin/:id", deleteAdmin)
 
 // router.put("/Admin/:id", updateAdmin)
+// ...existing code...
+
+router.post('/sendOTP', userController.sendOTP);
+// router.post('/verifyOTP', userController.verifyOTP);
+
+// ...existing code...
 
 // Student
 
@@ -75,6 +82,11 @@ router.delete("/Teacher/:id", deleteTeacher)
 router.put("/TeacherSubject", updateTeacherSubject)
 
 router.post('/TeacherAttendance/:id', teacherAttendance)
+
+
+// Parents
+router.post('/api/register', registerController.registerUser);
+
 
 // Notice
 

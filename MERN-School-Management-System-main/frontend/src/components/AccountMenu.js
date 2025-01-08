@@ -30,7 +30,7 @@ const AccountMenu = () => {
                         aria-expanded={open ? 'true' : undefined}
                     >
                         <Avatar sx={{ width: 32, height: 32 }}>
-                            {String(currentUser.name).charAt(0)}
+                            {currentUser && currentUser !== null && currentUser.school ? currentUser.school : ''}
                         </Avatar>
                     </IconButton>
                 </Tooltip>

@@ -12,7 +12,7 @@ import { getAllSclasses } from '../../redux/sclassRelated/sclassHandle';
 import { getAllStudents } from '../../redux/studentRelated/studentHandle';
 import { getAllTeachers } from '../../redux/teacherRelated/teacherHandle';
 
-const AdminHomePage = () => {
+const SuperAdminHomePage = () => {
     const dispatch = useDispatch();
     const { studentsList } = useSelector((state) => state.student);
     const { sclassesList } = useSelector((state) => state.sclass);
@@ -20,12 +20,14 @@ const AdminHomePage = () => {
 
     const { currentUser } = useSelector(state => state.user)
 
-    const adminID = currentUser && currentUser.school ? currentUser.school._id : null;
+    const adminID = currentUser && currentUser.school && currentUser.school._id ? currentUser.school._id : null;
 
     useEffect(() => {
-        dispatch(getAllStudents(adminID));
-        dispatch(getAllSclasses(adminID, "Sclass"));
-        dispatch(getAllTeachers(adminID));
+        if (adminID) {
+            dispatch(getAllStudents(adminID));
+            dispatch(getAllSclasses(adminID, "Sclass"));
+            dispatch(getAllTeachers(adminID));
+        }
     }, [adminID, dispatch]);
 
     const numberOfStudents = studentsList ? studentsList.length : 0;
@@ -51,7 +53,7 @@ const AdminHomePage = () => {
                             <Title>
                                 Total Classes
                             </Title>
-                            <Data start={0} end={numberOfClasses} duration={5} />
+                            <Data start={0} end={numberOfClasses} duration={2.5} />
                         </StyledPaper>
                     </Grid>
                     <Grid item xs={12} md={3} lg={3}>
@@ -69,11 +71,12 @@ const AdminHomePage = () => {
                             <Title>
                                 Fees Collection
                             </Title>
-                            <Data start={0} end={23000} duration={2.5} prefix="$" />                        </StyledPaper>
+                            <Data start={0} end={23000} duration={2.5} prefix="$" />
+                        </StyledPaper>
                     </Grid>
                     <Grid item xs={12} md={12} lg={12}>
                         <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
-                            <SeeNotice />
+                            {/* <SeeNotice /> */}
                         </Paper>
                     </Grid>
                 </Grid>
@@ -102,4 +105,4 @@ const Data = styled(CountUp)`
   color: green;
 `;
 
-export default AdminHomePage
+export default SuperAdminHomePage

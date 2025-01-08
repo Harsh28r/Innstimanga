@@ -55,6 +55,28 @@ export const registerUser = (fields, role) => async (dispatch) => {
 export const logoutUser = () => (dispatch) => {
     dispatch(authLogout());
 };
+// ...existing code...
+
+export const sendOTP = (email) => async (dispatch) => {
+    try {
+      const response = await axios.post('/api/users/sendOTP', { email });
+      console.log(response.data.message);
+    } catch (error) {
+      console.log(error.response.data.error);
+    }
+  };
+  
+  export const verifyOTP = (email, otp) => async (dispatch) => {
+    try {
+      const response = await axios.post('/api/users/verifyOTP', { email, otp });
+      return response.data.isValid;
+    } catch (error) {
+      console.log(error.response.data.error);
+      return false;
+    }
+  };
+  
+  // ...existing code...
 
 export const getUserDetails = (id, address) => async (dispatch) => {
     dispatch(getRequest());
