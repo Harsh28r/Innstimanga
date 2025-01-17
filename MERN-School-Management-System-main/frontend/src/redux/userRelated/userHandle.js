@@ -18,7 +18,8 @@ export const loginUser = (fields, role) => async (dispatch) => {
     dispatch(authRequest());
 
     try {
-        const result = await axios.post(`${REACT_APP_BASE_URL }/${role}Login`, fields, {
+        const formattedRole = role.trim().replace(/\s+/g, '');
+        const result = await axios.post(`${REACT_APP_BASE_URL}/${formattedRole}Login`, fields, {
             headers: { 'Content-Type': 'application/json' },
         });
         if (result.data.role) {
@@ -27,7 +28,27 @@ export const loginUser = (fields, role) => async (dispatch) => {
             dispatch(authFailed(result.data.message));
         }
     } catch (error) {
-        dispatch(authError(error));
+        dispatch(authError({
+            message: error.message,
+            code: error.code,
+            response: error.response ? error.response.data : null
+        }));
+
+        dispatch({
+            type: 'user/getError',
+            payload: {
+                message: error.message,
+                name: error.name,
+                code: error.code,
+                config: error.config,
+                request: error.request,
+                response: {
+                    data: error.response.data,
+                    status: error.response.status,
+                    headers: error.response.headers,
+                },
+            }
+        });
     }
 };
 
@@ -52,10 +73,21 @@ export const registerUser = (fields, role) => async (dispatch) => {
     }
 };
 
+export const getUserDetails = (userId, address) => async (dispatch) => {
+    try {
+        const result = await axios.get(`${process.env.REACT_APP_BASE_URL}/${address}/${userId}`);
+        if (result.data) {
+            dispatch({ type: 'user/getDetails', payload: result.data });
+        }
+    } catch (error) {
+        console.error('An error occurred:', error);
+        dispatch({ type: 'user/getError', payload: error.message });
+    }
+};
+
 export const logoutUser = () => (dispatch) => {
     dispatch(authLogout());
 };
-// ...existing code...
 
 export const sendOTP = (email) => async (dispatch) => {
     try {
@@ -75,37 +107,6 @@ export const sendOTP = (email) => async (dispatch) => {
       return false;
     }
   };
-  
-  // ...existing code...
-
-export const getUserDetails = (id, address) => async (dispatch) => {
-    dispatch(getRequest());
-
-    try {
-        const result = await axios.get(`${process.env.REACT_APP_BASE_URL}/${address}/${id}`);
-        if (result.data) {
-            dispatch(doneSuccess(result.data));
-        }
-    } catch (error) {
-        dispatch(getError(error));
-    }
-}
-
-// export const deleteUser = (id, address) => async (dispatch) => {
-//     dispatch(getRequest());
-
-//     try {
-//         const result = await axios.delete(`${process.env.REACT_APP_BASE_URL}/${address}/${id}`);
-//         if (result.data.message) {
-//             dispatch(getFailed(result.data.message));
-//         } else {
-//             dispatch(getDeleteSuccess());
-//         }
-//     } catch (error) {
-//         dispatch(getError(error));
-//     }
-// }
-
 
 export const deleteUser = (id, address) => async (dispatch) => {
     dispatch(getRequest());
@@ -116,6 +117,7 @@ export const updateUser = (fields, id, address) => async (dispatch) => {
     dispatch(getRequest());
 
     try {
+        
         const result = await axios.put(`${process.env.REACT_APP_BASE_URL}/${address}/${id}`, fields, {
             headers: { 'Content-Type': 'application/json' },
         });

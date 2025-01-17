@@ -106,3 +106,5 @@ const Data = styled(CountUp)`
 `;
 
 export default SuperAdminHomePage
+
+

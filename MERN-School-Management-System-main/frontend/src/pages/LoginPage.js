@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Button, Grid, Box, Typography, Paper, Checkbox, FormControlLabel, TextField, CssBaseline, IconButton, InputAdornment, CircularProgress, Backdrop } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
-import bgpic from "../assets/designlogin.jpg"
+import bgpic from "../assets/login.jpg"
 import { LightPurpleButton } from '../components/buttonStyles';
 import styled from 'styled-components';
 import { loginUser } from '../redux/userRelated/userHandle';
@@ -29,34 +29,39 @@ const LoginPage = ({ role }) => {
     const [passwordError, setPasswordError] = useState(false);
     const [rollNumberError, setRollNumberError] = useState(false);
     const [studentNameError, setStudentNameError] = useState(false);
-    const [aadharCard, setAadharCard] = useState("");
-    const [aadharCardError, setAadharCardError] = useState(false);
-    const [childRollNumber, setChildRollNumber] = useState("");
-    const [childRollNumberError, setChildRollNumberError] = useState(false);
 
-    const handleSubmit = (event) => {
+    // Define fields state
+    const [fields, setFields] = useState({
+        email: '',
+        password: '',
+        rollNumber: '',
+        studentName: ''
+    });
+
+    const handleSubmit = async (event) => {
         event.preventDefault();
 
-        if (role === "Admin") {
-            const email = event.target.email.value;
-            const password = event.target.password.value;
+        console.log('Submitting login with fields:', fields, 'and role:', role);
 
-            if (!email || !password) {
-                if (!email) setEmailError(true);
-                if (!password) setPasswordError(true);
-                return;
-            }
-
-            const fields = { email, password };
-            setLoader(true);
-            dispatch(loginUser(fields, role));
+        try {
+            await dispatch(loginUser(fields, role));
+            console.log('Login successful');
+        } catch (error) {
+            console.error('Login failed:', error);
         }
     };
 
     const handleInputChange = (event) => {
         const { name, value } = event.target;
+        setFields({
+            ...fields,
+            [name]: value
+        });
+
         if (name === 'email') setEmailError(false);
         if (name === 'password') setPasswordError(false);
+        if (name === 'rollNumber') setRollNumberError(false);
+        if (name === 'studentName') setStudentNameError(false);
     };
 
     const guestModeHandler = () => {
@@ -84,6 +89,9 @@ const LoginPage = ({ role }) => {
     }
 
     useEffect(() => {
+        if (currentRole === 'SuperAdmin') {
+            navigate('/Admin/dashboard');
+        }
         if (status === 'success' || currentUser !== null) {
             if (currentRole === 'Admin') {
                 navigate('/Admin/dashboard');
@@ -121,22 +129,58 @@ const LoginPage = ({ role }) => {
                             alignItems: 'center',
                         }}
                     >
-                        <Typography variant="h4" sx={{ mt: 5, mb: 3 }}>
-                            Admin Login
+                        <Typography variant="h4" sx={{ mb: 2, color: "#2c2143" }}>
+                            {role} Login
+                        </Typography>
+                        <Typography variant="h7">
+                            Welcome back! Please enter your details
                         </Typography>
                         <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 2 }}>
-                            <TextField
-                                margin="normal"
-                                required
-                                fullWidth
-                                id="email"
-                                label="Email Address"
-                                name="email"
-                                autoComplete="email"
-                                error={emailError}
-                                helperText={emailError && "Email is required"}
-                                onChange={handleInputChange}
-                            />
+                            {role === "Student" ? (
+                                <>
+                                    <TextField
+                                        margin="normal"
+                                        required
+                                        fullWidth
+                                        id="rollNumber"
+                                        label="Enter your Roll Number"
+                                        name="rollNumber"
+                                        autoComplete="off"
+                                        type="number"
+                                        autoFocus
+                                        error={rollNumberError}
+                                        helperText={rollNumberError && 'Roll Number is required'}
+                                        onChange={handleInputChange}
+                                    />
+                                    <TextField
+                                        margin="normal"
+                                        required
+                                        fullWidth
+                                        id="studentName"
+                                        label="Enter your name"
+                                        name="studentName"
+                                        autoComplete="name"
+                                        autoFocus
+                                        error={studentNameError}
+                                        helperText={studentNameError && 'Name is required'}
+                                        onChange={handleInputChange}
+                                    />
+                                </>
+                            ) : (
+                                <TextField
+                                    margin="normal"
+                                    required
+                                    fullWidth
+                                    id="email"
+                                    label="Enter your email"
+                                    name="email"
+                                    autoComplete="email"
+                                    autoFocus
+                                    error={emailError}
+                                    helperText={emailError && 'Email is required'}
+                                    onChange={handleInputChange}
+                                />
+                            )}
                             <TextField
                                 margin="normal"
                                 required
@@ -202,18 +246,6 @@ const LoginPage = ({ role }) => {
                                     </Grid>
                                 </Grid>
                             }
-                            {role === "Parent" &&
-                                <Grid container>
-                                    <Grid>
-                                        Don't have an account?
-                                    </Grid>
-                                    <Grid item sx={{ ml: 2 }}>
-                                        <StyledLink to="/ParentRegister">
-                                            Sign up
-                                        </StyledLink>
-                                    </Grid>
-                                </Grid>
-                            }
                         </Box>
                     </Box>
                 </Grid>
@@ -225,9 +257,8 @@ const LoginPage = ({ role }) => {
                     sx={{
                         backgroundImage: `url(${bgpic})`,
                         backgroundRepeat: 'no-repeat',
-                        backgroundColor: (t) =>
-                            t.palette.mode === 'light' ? t.palette.grey[50] : t.palette.grey[900],
-                        backgroundSize: 'cover',
+                        backgroundColor: 'white',
+                        backgroundSize: '50%',
                         backgroundPosition: 'center',
                     }}
                 />

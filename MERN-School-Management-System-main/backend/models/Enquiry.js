@@ -6,10 +6,8 @@ const enquirySchema = new mongoose.Schema({
   phone: String,
   email: String,
   grade: String,
-  status: String,
-  date: Date,
+  status: { type: String, default: 'new' },
+  date: { type: Date, default: Date.now }
 });
 
-const Enquiry = mongoose.model('Enquiry', enquirySchema);
-
-module.exports = Enquiry;
+module.exports = mongoose.model('Enquiry', enquirySchema);

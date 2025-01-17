@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const Inventory = require('../models/Inventory');
+const Enquiry = require('../models/Enquiry'); // Adjust the path as necessary
 
 // const { adminRegister, adminLogIn, deleteAdmin, getAdminDetail, updateAdmin } = require('../controllers/admin-controller.js');
 
@@ -131,16 +132,17 @@ router.delete("/Subjects/:id", deleteSubjects)
 router.delete("/SubjectsClass/:id", deleteSubjectsByClass)
 
 //  Enquiry
-router.post('/', async (req, res) => {
+router.post('/Enquiry', async (req, res) => {
     try {
-      const enquiry = new Enquiry(req.body);
-      await enquiry.save();
-      res.status(201).send(enquiry);
+        const enquiry = new Enquiry(req.body);
+        await enquiry.save();
+        res.status(201).send(enquiry);
     } catch (error) {
-      res.status(400).send(error);
+        res.status(400).send(error);
     }
-  });
-  router.get('/', async (req, res) => {
+});
+
+router.get('/', async (req, res) => {
     try {
       const enquiries = await Enquiry.find();
       res.send(enquiries);

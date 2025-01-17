@@ -2,10 +2,10 @@ import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
     status: 'idle',
-    userDetails: [],
+    userDetails: null,
     tempDetails: [],
     loading: false,
-    currentUser: JSON.parse(localStorage.getItem('user')) || null,
+    currentUser: {},
     currentRole: (JSON.parse(localStorage.getItem('user')) || {}).role || null,
     error: null,
     response: null,
@@ -74,12 +74,16 @@ const userSlice = createSlice({
             state.error = null;
         },
         getError: (state, action) => {
+            state.error = action.payload.message;
             state.loading = false;
-            state.error = action.payload;
+            state.response = null;
         },
         toggleDarkMode: (state) => {
             state.darkMode = !state.darkMode;
-        }
+        },
+        userGetDetails: (state, action) => {
+            state.userDetails = action.payload;
+        },
     },
 });
 
@@ -96,7 +100,8 @@ export const {
     getRequest,
     getFailed,
     getError,
-    toggleDarkMode
+    toggleDarkMode,
+    userGetDetails
 } = userSlice.actions;
 
 export const userReducer = userSlice.reducer;

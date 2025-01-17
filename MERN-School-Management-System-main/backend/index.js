@@ -8,6 +8,10 @@ const Routes = require("./routes/route.js")
 const Fee = require('./models/Fee') // Import the Fee model
 const Enquiry = require('./models/Enquiry.js')
 const authRoutes = require('./routes/auth');
+const timetableRouter = require('./routes/timetable');
+
+const { fetchRegisteredData} = require('../backend/controllers/admin-controller.js');
+
 
 const PORT = process.env.PORT || 5000
 
@@ -30,6 +34,9 @@ app.get('/api/classes', (req, res) => {
     res.json(classes);
 });
 
+//  TimeTableSection
+app.use('/api/timetable', timetableRouter);
+
 // // Endpoint to add a new class
 // app.post('/api/classes', (req, res) => {
 //     const { time, subject, teacher } = req.body;
@@ -45,25 +52,26 @@ app.get('/api/fees', async (req, res) => {
         res.status(500).json({ message: "Error fetching fees data" });
     }
 });
-//  Enquiry
-app.get('/enquiry', async (req, res) => {
-    try {
-        const enquiry = await Enquiry.find(); // Fetch fees from MongoDB
-        res.json(enquiry);
-    } catch (error) {
-        res.status(500).json({ message: "Error fetching fees data" });
-    }
-});
+// //  Enquiry
+// app.get('/enquiry', async (req, res) => {
+//     try {
+//         const enquiries = await Enquiry.find();
+//         res.json(enquiries);
+//     } catch (error) {
+//         res.status(500).json({ message: "Error fetching enquiry data" });
+//     }
+// });
 
-  app.get('/enquiry', async (req, res) => {
-    try {
-      const enquiries = await Enquiry.find();
-      res.send(enquiries);
-    } catch (error) {
-      res.status(500).send(error);
-    }
-  });
 
+// Institute Reg
+app.use('/admin', fetchRegisteredData)
+
+
+// Routes
+app.use('/enquiries', require('./routes/enquiries'));
+app.use('/admissions', require('./routes/admissions'));
+
+// ... existing code ...
 
 app.post('/api/fees', async (req, res) => {
     const { studentName, amount, status, feeType, dueDate, grade } = req.body;
@@ -91,28 +99,25 @@ app.post('/api/fees', async (req, res) => {
     }
 });
 
-app.post('/api/fees', async (req, res) => {
-    const { studentName, amount, status, feeType, dueDate, grade } = req.body;
+app.post('/enquiry', async (req, res) => {
+    const { name, email, message } = req.body;
 
     // Validate the incoming data
-    if (!studentName || !amount || !status || !feeType || !dueDate || !grade) {
+    if (!name || !email || !message) {
         return res.status(400).json({ message: 'All fields are required.' });
     }
 
     try {
-        const newFee = new Fee({
-            studentName,
-            amount,
-            status,
-            feeType,
-            dueDate,
-            grade,
+        const newEnquiry = new Enquiry({
+            name,
+            email,
+            message,
         });
 
-        const savedFee = await newFee.save();
-        res.status(201).json(savedFee);
+        const savedEnquiry = await newEnquiry.save();
+        res.status(201).json(savedEnquiry);
     } catch (error) {
-        console.error("Error adding fee:", error);
+        console.error("Error adding enquiry:", error);
         res.status(500).json({ message: 'Server error' });
     }
 });

@@ -4,6 +4,7 @@ import { Container, Grid, Box, Button } from '@mui/material';
 import styled from 'styled-components';
 import Students from "../assets/students.svg";
 import { LightPurpleButton } from '../components/buttonStyles';
+import Logo from '../assets/digi.jpg';
 
 const Homepage = () => {
     return (
@@ -15,16 +16,17 @@ const Homepage = () => {
                 <Grid item xs={12} md={6}>
                     <StyledPaper elevation={3}>
                         <StyledTitle>
-                            Welcome to
+                            {/* <img src={Logo} alt="logo" style={{ width: '50px', marginBottom: '10px', verticalAlign: 'middle' }} /> */}
+                            Welcome to our
                             <br />
-                            Institute Management
+                            <img src={Logo} alt="logo" style={{ width: '150px', margin: '20px auto', display: 'block', borderRadius: '20px' }} />
                             <br />
-                            System
+                       
                         </StyledTitle>
+                        
                         <StyledText>
-                            Streamline school management, class organization, and add students and faculty.
-                            Seamlessly track attendance, assess performance, and provide feedback.
-                            Access records, view marks, and communicate effortlessly.
+                            Welcome to our school management system. We help you organize classes, track attendance, assess performance, and communicate effortlessly. Access records, view marks, and provide feedback with ease.
+                            
                         </StyledText>
                         <StyledBox>
                             <StyledLink to="/choose">
@@ -32,13 +34,13 @@ const Homepage = () => {
                                     Login
                                 </LightPurpleButton>
                             </StyledLink>
-                            <StyledLink to="/chooseasguest">
+                            {/* <StyledLink to="/chooseasguest">
                                 <Button variant="outlined" fullWidth
                                     sx={{ mt: 2, mb: 3, color: "#7f56da", borderColor: "#7f56da" }}
                                 >
                                     Login as Guest
                                 </Button>
-                            </StyledLink>
+                            </StyledLink> */}
                             <StyledText>
                                 Don't have an account?{' '}
                                 <Link to="/Adminregister" style={{color:"#550080"}}>
@@ -79,11 +81,11 @@ const StyledBox = styled(Box)`
 const StyledTitle = styled.h1`
   font-size: 3rem;
   color: #252525;
-  /* font-family: "Manrope"; */
   font-weight: bold;
   padding-top: 0;
   letter-spacing: normal;
   line-height: normal;
+  padding-left: 50px;
 `;
 
 const StyledText = styled.p`

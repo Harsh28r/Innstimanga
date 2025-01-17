@@ -147,6 +147,15 @@ const getAdminDetail = async (req, res) => {
 //     }
 // }
 
+const fetchRegisteredData = async (req, res) => {
+    try {
+        const data = await Admin.find();
+        res.send(data);
+    } catch (err) {
+        res.status(500).json(err);
+    }
+};
+
 // module.exports = { adminRegister, adminLogIn, getAdminDetail, deleteAdmin, updateAdmin };
 
-module.exports = { adminRegister, adminLogIn, getAdminDetail };
+module.exports = { adminRegister, adminLogIn, getAdminDetail, fetchRegisteredData };

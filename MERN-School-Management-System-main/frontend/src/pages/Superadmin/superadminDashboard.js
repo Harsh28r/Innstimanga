@@ -18,7 +18,7 @@ import { AppBar, Drawer } from '../../components/styles';
 import Logout from '../Logout';
 import SideBar from './Sidebar';
 import AdminProfile from '../admin/AdminProfile';
-import AdminHomePage from '../admin/AdminHomePage';
+import SuperAdminHomePage from './superadminHome'
 
 import AddStudent from '../admin/studentRelated/AddStudent';
 import SeeComplains from '../admin/studentRelated/SeeComplains';
@@ -63,8 +63,6 @@ import AdmissionFormIcon from '@mui/icons-material/Assignment';
 import EnquiryFormIcon from '@mui/icons-material/QuestionAnswer';
 import ResourceManagementIcon from '@mui/icons-material/Storage';
 import QuestionPaperIcon from '@mui/icons-material/Description';
-import SuperAdminHomePage from './superadminHome'
-// import Notifications from './Notifications';
 
 const SuperAdminDashboard = () => {
     const [open, setOpen] = useState(false);

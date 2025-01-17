@@ -10,6 +10,7 @@ import AdminRegisterPage from './pages/admin/AdminRegisterPage';
 import  ParentsRegisterPage  from './pages/parents/ParentsRegisterPage'
 import ChooseUser from './pages/ChooseUser';
 import SuperAdminDashboard from './pages/Superadmin/superadminDashboard'
+import SuperAdmin from './pages/Superadmin/superadmin'
 
 const App = () => {
   const { currentRole } = useSelector(state => state.user);
@@ -30,7 +31,8 @@ const App = () => {
 
           <Route path="/Adminregister" element={<AdminRegisterPage  />} />
           <Route path="/Parentsregister" element={<  ParentsRegisterPage />} />
-          {/* <Route path="/ Super-AdminDashboard" element={<   SuperAdminDashboard/>} /> */}
+          <Route path="/Super" element={<   SuperAdmin/>} />
+          <Route path="/superadmin/dashboard/:id" element={<SuperAdminDashboard/>} />
 
           
 

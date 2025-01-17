@@ -24,6 +24,7 @@ const Card = styled.div`
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   border: 1px solid #e5e7eb;
   overflow: hidden;
+  margin-bottom: 1rem;
   transition: transform 0.3s, box-shadow 0.3s;
   &:hover {
     transform: translateY(-5px);
@@ -143,6 +144,12 @@ const CloseButton = styled.span`
   }
 `;
 
+const StatusBadge = styled.span`
+  padding: 0.5rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+`;
+
 // Function to get status color
 function getStatusColor(status) {
   switch (status) {
@@ -166,6 +173,17 @@ function getStatusColor(status) {
 const EnquiryForm = () => {
   const [enquiries, setEnquiries] = useState([]);
   const [admissions, setAdmissions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [newAdmission, setNewAdmission] = useState({
+    studentName: '',
+    parentName: '',
+    phone: '',
+    email: '',
+    grade: '',
+    status: 'new',
+    date: new Date().toISOString().replace('Z', '') // Default to today's date
+  });
   const [newEnquiry, setNewEnquiry] = useState({
     studentName: '',
     parentName: '',
@@ -173,28 +191,43 @@ const EnquiryForm = () => {
     email: '',
     grade: '',
     status: 'new',
-    date: new Date().toISOString().split('T')[0] // Default to today's date
+    date: new Date().toISOString().replace('Z', '') // Default to today's date
   });
   const [showForm, setShowForm] = useState(false); // State to toggle form visibility
+  const [showAdmissionForm, setShowAdmissionForm] = useState(false); // State to toggle admission form visibility
+  const [someOtherState, setSomeOtherState] = useState(false); // Example of declaring a separate state updater function
+
+  const baseURL = 'http://localhost:5000';
 
   useEffect(() => {
-    // Fetch enquiries
-    axios.get('http://localhost:5000/Enquiry')
-      .then(response => {
+    const fetchEnquiries = async () => {
+      try {
+        const response = await axios.get(`${baseURL}/enquiries`);
+        console.log('Enquiries fetched:', response.data);
         setEnquiries(response.data);
-      })
-      .catch(error => {
-        console.error('Error fetching enquiries:', error);
-      });
+      } catch (error) {
+        console.error('Error fetching enquiries:', error.message);
+        setError('Failed to fetch enquiries. Please check your network connection.');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    // Fetch admissions
-    axios.get('http://localhost:5000/admissions')
-      .then(response => {
+    const fetchAdmissions = async () => {
+      try {
+        const response = await axios.get(`${baseURL}/admissions`);
+        console.log('Admissions fetched:', response.data);
         setAdmissions(response.data);
-      })
-      .catch(error => {
-        console.error('Error fetching admissions:', error);
-      });
+      } catch (error) {
+        console.error('Error fetching admissions:', error.message);
+        setError('Failed to fetch admissions. Please check your network connection.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEnquiries();
+    fetchAdmissions();
   }, []);
 
   const handleInputChange = (e) => {
@@ -202,76 +235,173 @@ const EnquiryForm = () => {
     setNewEnquiry({ ...newEnquiry, [name]: value });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    axios.post('http://localhost:5000/Enquiry', newEnquiry)
-      .then(response => {
-        setEnquiries([...enquiries, response.data]);
-        setNewEnquiry({
-          studentName: '',
-          parentName: '',
-          phone: '',
-          email: '',
-          grade: '',
-          status: 'new',
-          date: new Date().toISOString().split('T')[0]
-        });
-        setShowForm(false); // Hide form after submission
-      })
-      .catch(error => {
-        console.error('Error adding new enquiry:', error);
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    
+    const data = {
+      studentName: newEnquiry.studentName,
+      parentName: newEnquiry.parentName,
+      phone: newEnquiry.phone,
+      email: newEnquiry.email,
+      grade: newEnquiry.grade
+    };
+
+    try {
+      const response = await axios.post(`${baseURL}/admissions`, data);
+      console.log('Admission submitted:', response.data);
+      setAdmissions([...admissions, response.data]);
+      setNewEnquiry({
+        studentName: '',
+        parentName: '',
+        phone: '',
+        email: '',
+        grade: '',
+        status: 'new',
+        date: new Date().toISOString()
       });
+      setShowForm(false); // Hide form after submission
+    } catch (error) {
+      console.error('Error submitting admission:', error.response.data);
+    }
+  };
+
+  const handleAdmissionInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewAdmission({ ...newAdmission, [name]: value });
+  };
+
+  const handleAdmissionSubmit = async (event) => {
+    event.preventDefault();
+    
+    const data = {
+      studentName: newAdmission.studentName,
+      parentName: newAdmission.parentName,
+      phone: newAdmission.phone,
+      email: newAdmission.email,
+      grade: newAdmission.grade
+    };
+
+    try {
+      const response = await axios.post(`${baseURL}/admissions`, data);
+      console.log('Admission submitted:', response.data);
+      setAdmissions([...admissions, response.data]);
+      setNewAdmission({
+        studentName: '',
+        parentName: '',
+        phone: '',
+        email: '',
+        grade: '',
+        status: 'new',
+        date: new Date().toISOString()
+      });
+      setShowAdmissionForm(false); // Hide form after submission
+      console.log('New admission added successfully');
+    } catch (error) {
+      console.error('Error submitting admission:', error.response.data);
+    }
+  };
+
+  const handleEnquirySubmit = async (event) => {
+    event.preventDefault();
+    
+    const data = {
+      studentName: newEnquiry.studentName,
+      parentName: newEnquiry.parentName,
+      phone: newEnquiry.phone,
+      email: newEnquiry.email,
+      grade: newEnquiry.grade
+    };
+
+    try {
+      const response = await axios.post(`${baseURL}/enquiries`, data);
+      console.log('Enquiry submitted:', response.data);
+      setEnquiries([...enquiries, response.data]);
+      setNewEnquiry({
+        studentName: '',
+        parentName: '',
+        phone: '',
+        email: '',
+        grade: '',
+        status: 'new',
+        date: new Date().toISOString()
+      });
+      setShowForm(false); // Hide form after submission
+      console.log('New enquiry added successfully');
+    } catch (error) {
+      console.error('Error submitting enquiry:', error.response.data);
+    }
+  };
+
+  const handleEdit = (id) => {
+    // Implement edit functionality here
+    console.log('Edit button clicked for id:', id);
+  };
+
+  const handleDelete = (id) => {
+    // Implement delete functionality here
+    console.log('Delete button clicked for id:', id);
   };
 
   return (
     <Container>
       <Header>Enquiry Form</Header>
-      <FormsSection enquiries={enquiries} admissions={admissions} setShowForm={setShowForm} />
-      <Modal show={showForm}>
+      {loading && <p>Loading...</p>}
+      {error && <p>{error}</p>}
+      {!loading && !error && (
+        <FormsSection
+          enquiries={enquiries}
+          admissions={admissions}
+          newAdmission={newAdmission}
+          setShowForm={setShowAdmissionForm}
+          onEdit={handleEdit}
+          onDelete={id => handleDelete(id)}
+        />
+      )}
+      <Modal show={showAdmissionForm}>
         <ModalContent>
-          <CloseButton onClick={() => setShowForm(false)}>&times;</CloseButton>
-          <form onSubmit={handleSubmit}>
+          <CloseButton onClick={() => setShowAdmissionForm(false)}>&times;</CloseButton>
+          <form onSubmit={handleAdmissionSubmit}>
             <input
               type="text"
               name="studentName"
-              value={newEnquiry.studentName}
-              onChange={handleInputChange}
+              value={newAdmission.studentName}
+              onChange={handleAdmissionInputChange}
               placeholder="Student Name"
               required
             />
             <input
               type="text"
               name="parentName"
-              value={newEnquiry.parentName}
-              onChange={handleInputChange}
+              value={newAdmission.parentName}
+              onChange={handleAdmissionInputChange}
               placeholder="Parent Name"
               required
             />
             <input
               type="text"
               name="phone"
-              value={newEnquiry.phone}
-              onChange={handleInputChange}
+              value={newAdmission.phone}
+              onChange={handleAdmissionInputChange}
               placeholder="Phone"
               required
             />
             <input
               type="email"
               name="email"
-              value={newEnquiry.email}
-              onChange={handleInputChange}
+              value={newAdmission.email}
+              onChange={handleAdmissionInputChange}
               placeholder="Email"
               required
             />
             <input
               type="text"
               name="grade"
-              value={newEnquiry.grade}
-              onChange={handleInputChange}
+              value={newAdmission.grade}
+              onChange={handleAdmissionInputChange}
               placeholder="Grade"
               required
             />
-            <button type="submit">Add Enquiry</button>
+            <button type="submit">Add Admission</button>
           </form>
         </ModalContent>
       </Modal>
@@ -281,7 +411,7 @@ const EnquiryForm = () => {
 
 export default EnquiryForm;
 
-export function FormsSection({ enquiries = [], admissions = [], setShowForm }) {
+export function FormsSection({ enquiries = [], admissions = [], newAdmission, setShowForm, onEdit, onDelete }) {
   return (
     <Section>
       <div>
@@ -317,16 +447,16 @@ export function FormsSection({ enquiries = [], admissions = [], setShowForm }) {
               </NewButton>
             </div>
             <div className="divide-y">
-              {enquiries.map((enquiry, index) => (
-                <div key={index} className="py-4 first:pt-0 last:pb-0">
+              {enquiries.slice(0, 4).map((enquiry) => (
+                <div key={enquiry.id} className="py-4 first:pt-0 last:pb-0">
                   <div className="flex items-center justify-between mb-2">
                     <div>
                       <h4 className="font-medium text-gray-900">{enquiry.studentName || 'Unknown Student'}</h4>
                       <p className="text-sm text-gray-500">{enquiry.parentName || 'Unknown Parent'}</p>
                     </div>
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(enquiry.status)}`}>
+                    <StatusBadge className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(enquiry.status)}`}>
                       {enquiry.status ? enquiry.status.replace('_', ' ').charAt(0).toUpperCase() + enquiry.status.slice(1) : 'Unknown Status'}
-                    </span>
+                    </StatusBadge>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <div className="text-gray-500">
@@ -335,9 +465,12 @@ export function FormsSection({ enquiries = [], admissions = [], setShowForm }) {
                     </div>
                     <div className="flex items-center gap-2">
                       <button className="p-1 text-blue-600 hover:bg-blue-50 rounded">
+                        <Download size={16} />
+                      </button>
+                      <button className="p-1 text-blue-600 hover:bg-blue-50 rounded" onClick={() => onEdit(enquiry.id)}>
                         <Edit2 size={16} />
                       </button>
-                      <button className="p-1 text-red-600 hover:bg-red-50 rounded">
+                      <button className="p-1 text-red-600 hover:bg-red-50 rounded" onClick={() => onDelete(enquiry.id)}>
                         <Trash2 size={16} />
                       </button>
                     </div>
@@ -369,7 +502,7 @@ export function FormsSection({ enquiries = [], admissions = [], setShowForm }) {
                   placeholder="Search enquiries..."
                 />
               </SearchContainer>
-              <NewButton>
+              <NewButton onClick={() => setShowForm(true)}>
                 <Plus size={16} className="inline mr-1" />
                 New Admission
               </NewButton>
@@ -395,10 +528,10 @@ export function FormsSection({ enquiries = [], admissions = [], setShowForm }) {
                       <button className="p-1 text-blue-600 hover:bg-blue-50 rounded">
                         <Download size={16} />
                       </button>
-                      <button className="p-1 text-blue-600 hover:bg-blue-50 rounded">
+                      <button className="p-1 text-blue-600 hover:bg-blue-50 rounded" onClick={() => onEdit(admission.id)}>
                         <Edit2 size={16} />
                       </button>
-                      <button className="p-1 text-red-600 hover:bg-red-50 rounded">
+                      <button className="p-1 text-red-600 hover:bg-red-50 rounded" onClick={() => onDelete(admission.id)}>
                         <Trash2 size={16} />
                       </button>
                     </div>

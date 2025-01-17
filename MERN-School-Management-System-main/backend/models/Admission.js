@@ -6,9 +6,8 @@ const admissionSchema = new mongoose.Schema({
   phone: String,
   email: String,
   grade: String,
-  status: String,
-  date: Date,
-  documents: [String],
+  status: { type: String, default: 'pending' },
+  date: { type: Date, default: Date.now }
 });
 
 module.exports = mongoose.model('Admission', admissionSchema);
