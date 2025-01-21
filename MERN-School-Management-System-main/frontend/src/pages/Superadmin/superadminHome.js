@@ -105,6 +105,6 @@ const Data = styled(CountUp)`
   color: green;
 `;
 
-export default SuperAdminHomePage
+export default SuperAdminHomePage;
 
 

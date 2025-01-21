@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Building2, BarChart3, User, UserPlus } from 'lucide-react';
 import { InstitutesList } from './InstitutesList';
-import  AdminDashboard  from '../admin/AdminDashboard.js';
+import AdminDashboard from '../admin/AdminDashboard';
 import { Institute } from '../../types/auth.js';
 import PropTypes from 'prop-types';
 import styles from './styles.module.css';
@@ -15,35 +15,112 @@ const tabs = [
   { id: 'overview', label: 'Overview', icon: <BarChart3 size={20} /> },
 ];
 
-export default function SuperAdmin() {
+const SuperAdmin = () => {
   const [activeTab, setActiveTab] = useState('institutes');
   const [selectedInstitute, setSelectedInstitute] = useState(null);
   const [admins, setAdmins] = useState([]);
+  const [studentsError, setStudentsError] = useState(null);
+  const [teachersError, setTeachersError] = useState(null);
 
   const dispatch = useDispatch();
-  const { studentsList } = useSelector((state) => state.student);
-  const { teachersList } = useSelector((state) => state.teacher);
+  const { studentsList, loading: studentsLoading } = useSelector((state) => state.student);
+  const { teachersList, loading: teachersLoading } = useSelector((state) => state.teacher);
+  const [adminsWithCounts, setAdminsWithCounts] = useState([]);
 
   const navigate = useNavigate();
 
+  const studentData = useSelector((state) => state.student.studentData);
+  const studentId = studentData?._id;
+
   useEffect(() => {
-    dispatch(getAllStudents())
-      .catch(error => {
-        // Handle the error here
-        console.error('An error occurred while getting all students:', error);
-      });
-    dispatch(getAllTeachers())
-      .catch(error => {
-        // Handle the error here
-        console.error('An error occurred while getting all teachers:', error);
-      });
+    const fetchStudents = async () => {
+      try {
+        const result = await dispatch(getAllStudents());
+        if (result?.payload) {
+          console.log('Fetched Students:', result.payload);
+        } else {
+          console.error('Students fetch failed', result);
+          setStudentsError({
+            message: 'Failed to fetch students',
+            status: result?.error ? result.error.status : null
+          });
+        }
+      } catch (error) {
+        console.error('Students Fetch Error:', error);
+        setStudentsError({
+          message: error.message || 'Failed to fetch students',
+          status: error.response?.status
+        });
+      }
+    };
+
+    const fetchTeachers = async () => {
+      try {
+        const result = await dispatch(getAllTeachers());
+        if (result?.payload) {
+          console.log('Fetched Teachers:', result.payload);
+        } else {
+          console.error('Teachers fetch failed', result);
+          setTeachersError({
+            message: 'Failed to fetch teachers',
+            status: result?.error ? result.error.status : null
+          });
+        }
+      } catch (error) {
+        console.error('Teachers Fetch Error:', error);
+        setTeachersError({
+          message: error.message || 'Failed to fetch teachers',
+          status: error.response?.status
+        });
+      }
+    };
+
+    fetchStudents();
+    fetchTeachers();
   }, [dispatch]);
 
   useEffect(() => {
+    console.log('Students List:', studentsList);
+    console.log('Teachers List:', teachersList);
+
     fetch('http://localhost:5000/Admin')
-      .then(response => response.json())
-      .then(data => setAdmins(data));
-  }, []);
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(admins => {
+        console.log('Raw Admins:', admins);
+        console.log('Admins Type:', typeof admins);
+        console.log('Admins Length:', admins.length);
+        
+        const enrichedAdmins = admins.map(admin => {
+          if (!admin || !admin._id) {
+            console.warn('Encountered invalid admin:', admin);
+            return null;
+          }
+
+          return {
+            ...admin,
+            students: studentsList ? 
+              studentsList.filter(student => 
+                student?.school && student.school === admin._id
+              ).length : 0,
+            teachers: teachersList ? 
+              teachersList.filter(teacher => 
+                teacher?.school && teacher.school === admin._id
+              ).length : 0
+          };
+        }).filter(admin => admin !== null);
+
+        console.log('Enriched Admins:', enrichedAdmins);
+        setAdminsWithCounts(enrichedAdmins);
+      })
+      .catch(error => {
+        console.error('Error fetching admins:', error);
+      });
+  }, [studentsList, teachersList]);
 
   // Reset selected institute when switching to institutes tab
   const handleTabChange = (tabId) => {
@@ -56,14 +133,30 @@ export default function SuperAdmin() {
   // When an institute is selected, switch to overview tab
   const handleInstituteSelect = (institute) => {
     setSelectedInstitute(institute);
-    setActiveTab('overview');
+    // setActiveTab('overview');
   };
 
-  const handleManageInstitute = (institute) => {
-    setActiveTab('overview');
-    setSelectedInstitute(institute);
-    navigate(`/superadmin/dashboard/${institute._id}`);
+  const handleBack = () => {
+    setSelectedInstitute(null);
   };
+
+  // Error handling for students and teachers
+  if (studentsError) {
+    console.error('Students Fetch Error:', studentsError);
+  }
+
+  if (teachersError) {
+    console.error('Teachers Fetch Error:', teachersError);
+  }
+
+  if (selectedInstitute) {
+    return (
+      <AdminDashboard 
+        institute={selectedInstitute} 
+        onBack={handleBack}
+      />
+    );
+  }
 
   return (
     <div className="h-[calc(100vh-73px)]" style={{ backgroundColor: 'white' }}>
@@ -90,66 +183,57 @@ export default function SuperAdmin() {
 
       {/* Main Content */}
       Manage your Institute
-      <div className={`${styles.cardContainer} p-6 grid  grid-cols-3 gap-4`} style={{ backgroundColor: 'lightgrey' }}>
-        {/* {activeTab === 'institutes' && (
-          <InstitutesList onSelectInstitute={handleInstituteSelect} />
-        )} */}
-        {activeTab === 'overview' && selectedInstitute && (
-          <AdminDashboard instituteId={selectedInstitute.id} handleManageInstitute={handleManageInstitute} />
-        )}
-       
-        {admins.length > 0 ? (
-          <div className="flex flex-wrap">
-            {admins.map(admin => (
-              <div key={admin._id} className={`${styles.individualCard} w-1/4`}>
-                <p><Building2 size={20} />  {admin.schoolName}</p>
-                <p>Location: {admin.instituteAddress}</p>
-                <p><User size={20} /> Parents:{admin.teachers} </p>
-                <p> <UserPlus size={20} />Students: {admin.students} </p>
-                {activeTab === 'overview' && selectedInstitute && (
-                  <div className="bg-white border-b px-6 py-3" style={{ padding: '10px' }}>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h2 className="text-lg font-semibold text-gray-900">
-                          {selectedInstitute.name}
-                        </h2>
-                        <p className="text-sm text-gray-500">{selectedInstitute.location}</p>
-                        <p>ID: {selectedInstitute._id}</p>
-                        <p>
-                          <Building2 size={20} /> {selectedInstitute.schoolName}
-                        </p>
-                        <p>Location: {selectedInstitute.instituteAddress}</p>
-                        <p>Teachers: {teachersList.length} <User size={20} /></p>
-                        <p>Students: {studentsList.length} <UserPlus size={20} /></p>
-                      </div>
-                      <button
-                        onClick={() => setSelectedInstitute(null)}
-                        className="text-sm text-blue-600 hover:text-blue-700"
-                        style={{ backgroundColor: 'lightcoral' }}
-                      >
-                        Change Institute
-                      </button>
-                    </div>
-                  </div>
-                )}
-                <button
-                  onClick={() => handleManageInstitute(admin)}
-                  className="text-sm text-blue-600 hover:text-blue-700"
-                  style={{ backgroundColor: 'lightcoral' }}
+      {activeTab === 'overview' && selectedInstitute ? (
+        <AdminDashboard 
+          institute={selectedInstitute} 
+          onBack={() => setActiveTab('institutes')} 
+        />
+      ) : (
+        <div 
+          className={`${styles.cardContainer} p-6 grid grid-flow-col auto-cols-max gap-8`} 
+          style={{ 
+            backgroundColor: 'lightgrey', 
+            overflowX: 'auto',
+            columnGap: '2rem'
+          }}
+        >
+          {adminsWithCounts.length > 0 ? (
+            adminsWithCounts.map(admin => {
+              if (!admin) {
+                console.warn('Skipping null admin in rendering');
+                return null;
+              }
+              
+              return (
+                <div 
+                  key={admin._id} 
+                  className={`${styles.individualCard} w-64 flex-shrink-0`}
                 >
-                  Manage Institute
-                </button>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p>Loading...</p>
-        )}
-      </div>
+                  <p><Building2 size={20} />  {admin.schoolName || 'Unnamed Institute'}</p>
+                  <p>Location: {admin.instituteAddress || 'No address provided'}</p>
+                  <p><User size={20} /> Teachers: {admin.teachers || 0} </p>
+                  <p> <UserPlus size={20} />Students: {admin.students || 0} </p>
+                  <button
+                    onClick={() => handleInstituteSelect(admin)}
+                    className="text-sm text-blue-600 hover:text-blue-700"
+                    style={{ backgroundColor: 'lightcoral' }}
+                  >
+                    Manage Institute
+                  </button>
+                </div>
+              );
+            }).filter(Boolean)
+          ) : (
+            <p>No institutes found or loading...</p>
+          )}
+        </div>
+      )}
     </div>
   );
-}
+};
 
 SuperAdmin.propTypes = {
   // Add any necessary prop types here
 };
+
+export default SuperAdmin;

@@ -13,6 +13,7 @@ import styled from 'styled-components';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginUser } from '../redux/userRelated/userHandle';
 import Popup from '../components/Popup';
+import SuperAdminLoginForm from './SuperAdminLogin';
 
 const ChooseUser = ({ visitor }) => {
   const dispatch = useDispatch()
@@ -24,67 +25,68 @@ const ChooseUser = ({ visitor }) => {
   const [loader, setLoader] = useState(false)
   const [showPopup, setShowPopup] = useState(false);
   const [message, setMessage] = useState("");
+  const [showSuperAdminLoginForm, setShowSuperAdminLoginForm] = useState(false);
 
   const navigateHandler = (user) => {
-    if (user === "Admin") {
-      if (visitor === "guest") {
-        const email = "yogendra@12"
-        const fields = { email, password }
-        setLoader(true)
-        dispatch(loginUser(fields, user))
+    if (visitor === "guest") {
+      alert("You are not allowed to access any role as a guest.");
+    } else {
+      if (user === "Admin") {
+        if (visitor === "guest") {
+          const email = "yogendra@12"
+          const fields = { email, password }
+          setLoader(true)
+          dispatch(loginUser(fields, user))
+        }
+        else {
+          navigate('/Adminlogin');
+        }
       }
-      else {
-        navigate('/Adminlogin');
-      }
-    }
 
-    else if (user === "Student") {
-      if (visitor === "guest") {
-        const rollNum = "1"
-        const studentName = "Dipesh Awasthi"
-        const fields = { rollNum, studentName, password }
-        setLoader(true)
-        dispatch(loginUser(fields, user))
+      else if (user === "Student") {
+        if (visitor === "guest") {
+          const rollNum = "1"
+          const studentName = "Dipesh Awasthi"
+          const fields = { rollNum, studentName, password }
+          setLoader(true)
+          dispatch(loginUser(fields, user))
+        }
+        else {
+          navigate('/Studentlogin');
+        }
       }
-      else {
-        navigate('/Studentlogin');
-      }
-    }
 
-    else if (user === "Teacher") {
-      if (visitor === "guest") {
-        const email = "tony@12"
-        const fields = { email, password }
-        setLoader(true)
-        dispatch(loginUser(fields, user))
+      else if (user === "Teacher") {
+        if (visitor === "guest") {
+          const email = "tony@12"
+          const fields = { email, password }
+          setLoader(true)
+          dispatch(loginUser(fields, user))
+        }
+        else {
+          navigate('/Teacherlogin');
+        }
       }
-      else {
-        navigate('/Teacherlogin');
-      }
-    }
 
-    else if (user === "Super Admin") {
-      if (visitor === "guest") {
-        const email = "superadmin@example.com"
-        const fields = { email, password }
-        setLoader(true)
-        dispatch(loginUser(fields, user))
+      else if (user === "Super Admin") {
+        if (visitor === "guest") {
+          alert("You are not allowed to access the Super Admin role as a guest.");
+        } else {
+          setShowSuperAdminLoginForm(true);
+        }
       }
-      else {
-        navigate('/SuperAdminDashboard');
-      }
-    }
 
-    else if (user === "Parent") {
-      if (visitor === "guest") {
-        const parentEmail = "parent@example.com"
-        const studentName = "Child's Name"
-        const fields = { parentEmail, studentName, password }
-        setLoader(true)
-        dispatch(loginUser(fields, user))
-      }
-      else {
-        navigate('/Parentslogin');
+      else if (user === "Parent") {
+        if (visitor === "guest") {
+          const parentEmail = "parent@example.com"
+          const studentName = "Child's Name"
+          const fields = { parentEmail, studentName, password }
+          setLoader(true)
+          dispatch(loginUser(fields, user))
+        }
+        else {
+          navigate('/Parentslogin');
+        }
       }
     }
   }
@@ -98,6 +100,9 @@ const ChooseUser = ({ visitor }) => {
         navigate('/Student/dashboard');
       } else if (currentRole === 'Teacher') {
         navigate('/Teacher/dashboard');
+      }
+      else if (currentRole === 'Super Admin') {
+        navigate('/super');
       }
     }
     else if (status === 'error') {
@@ -178,6 +183,13 @@ const ChooseUser = ({ visitor }) => {
           </Grid>
         </Grid>
       </Container>
+      {showSuperAdminLoginForm && (
+        <SuperAdminLoginForm 
+          defaultUsername="test" 
+          defaultPassword="test1"
+          onClose={() => setShowSuperAdminLoginForm(false)}
+        />
+      )}
       <Backdrop
         sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
         open={loader}

@@ -1,0 +1,37 @@
+.back-button {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 10px 20px;
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    z-index: 1000;
+    font-weight: bold;
+}
+
+.back-button:hover {
+    background-color: #5a6268;
+}
+
+.MuiDrawer-paper {
+    position: relative;
+    white-space: nowrap;
+    width: 240px;
+    transition: width 0.3s ease;
+}
+
+.MuiDrawer-paper.closed {
+    width: 60px;
+}
+
+.sidebar-link {
+    text-decoration: none;
+    color: inherit;
+}
+
+.sidebar-link:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+} 

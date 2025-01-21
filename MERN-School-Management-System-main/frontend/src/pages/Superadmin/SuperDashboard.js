@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
     CssBaseline,
     Box,
@@ -10,51 +10,57 @@ import {
     ListItem,
     ListItemIcon,
     ListItemText,
+    Grid,
+    Card,
+    CardContent,
+    Button,
+    Dialog,
+    DialogTitle,
+    DialogContent
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 import { AppBar, Drawer } from '../../components/styles';
 import Logout from '../Logout';
-import SideBar from './SideBar';
-import AdminProfile from './AdminProfile';
-import AdminHomePage from './AdminHomePage';
+import SideBar from './Sidebar';
+import AdminProfile from '../admin/AdminProfile';
+import SuperAdminHomePage from './superadminHome'
 
-import AddStudent from './studentRelated/AddStudent';
-import SeeComplains from './studentRelated/SeeComplains';
-import ShowStudents from './studentRelated/ShowStudents';
-import StudentAttendance from './studentRelated/StudentAttendance';
-import StudentExamMarks from './studentRelated/StudentExamMarks';
-import ViewStudent from './studentRelated/ViewStudent';
+import AddStudent from '../admin/studentRelated/AddStudent';
+import SeeComplains from '../admin/studentRelated/SeeComplains';
+import ShowStudents from '../admin/studentRelated/ShowStudents';
+import StudentAttendance from '../admin/studentRelated/StudentAttendance';
+import StudentExamMarks from '../admin/studentRelated/StudentExamMarks';
+import ViewStudent from '../admin/studentRelated/ViewStudent';
 
-import AddNotice from './noticeRelated/AddNotice';
-import ShowNotices from './noticeRelated/ShowNotices';
+import AddNotice from '../admin/noticeRelated/AddNotice';
+import ShowNotices from '../admin/noticeRelated/ShowNotices';
 
-import ShowSubjects from './subjectRelated/ShowSubjects';
-import SubjectForm from './subjectRelated/SubjectForm';
-import ViewSubject from './subjectRelated/ViewSubject';
+import ShowSubjects from '../admin/subjectRelated/ShowSubjects';
+import SubjectForm from '../admin/subjectRelated/SubjectForm';
+import ViewSubject from '../admin/subjectRelated/ViewSubject';
 
+import AddTeacher from '../admin/teacherRelated/AddTeacher';
+import ChooseClass from '../admin/teacherRelated/ChooseClass';
+import ChooseSubject from '../admin/teacherRelated/ChooseSubject';
+import ShowTeachers from '../admin/teacherRelated/ShowTeachers';
+import TeacherDetails from '../admin/teacherRelated/TeacherDetails';
 
-import AddTeacher from './teacherRelated/AddTeacher';
-import ChooseClass from './teacherRelated/ChooseClass';
-import ChooseSubject from './teacherRelated/ChooseSubject';
-import ShowTeachers from './teacherRelated/ShowTeachers';
-import TeacherDetails from './teacherRelated/TeacherDetails';
-
-import AddClass from './classRelated/AddClass';
-import ClassDetails from './classRelated/ClassDetails';
-import ShowClasses from './classRelated/ShowClasses';
+import AddClass from '../admin/classRelated/AddClass';
+import ClassDetails from '../admin/classRelated/ClassDetails';
+import ShowClasses from '../admin/classRelated/ShowClasses';
 import AccountMenu from '../../components/AccountMenu';
 
-import Timetable from './Timetable';
-import OnlineLectureLink from './OnlineLectureLink';
-import LeadManagement from './LeadManagement';
-import PaystubManagement from './PaystubManagement';
-import Inventory from './Inventory';
-import AdmissionForm from './AdmissionForm';
-import EnquiryForm from './EnquiryForm';
-import ResourceManagement from './ResourceManagement';
-import QuestionPaperMaker from './QuestionPaperMaker';
+import Timetable from '../admin/Timetable';
+import OnlineLectureLink from '../admin/OnlineLectureLink';
+import LeadManagement from '../admin/LeadManagement';
+import PaystubManagement from '../admin/PaystubManagement';
+import Inventory from '../admin/Inventory';
+import AdmissionForm from '../admin/AdmissionForm';
+import EnquiryForm from '../admin/EnquiryForm';
+import ResourceManagement from '../admin/ResourceManagement';
+import QuestionPaperMaker from '../admin/QuestionPaperMaker';
 import TimetableIcon from '@mui/icons-material/AccessTime';
 import OnlineLectureIcon from '@mui/icons-material/VideoCall';
 import LeadManagementIcon from '@mui/icons-material/GroupAdd';
@@ -64,16 +70,43 @@ import AdmissionFormIcon from '@mui/icons-material/Assignment';
 import EnquiryFormIcon from '@mui/icons-material/QuestionAnswer';
 import ResourceManagementIcon from '@mui/icons-material/Storage';
 import QuestionPaperIcon from '@mui/icons-material/Description';
-import { useNavigate } from 'react-router-dom';
-import PropTypes from 'prop-types';
-// import Notifications from './Notifications';
+import axios from 'axios';
 
-const AdminDashboard = ({ institute, onBack }) => {
+const SuperAdminDashboard = () => {
     const [open, setOpen] = useState(false);
+    const [institutes, setInstitutes] = useState([]);
+    const [selectedInstitute, setSelectedInstitute] = useState(null);
     const navigate = useNavigate();
 
     const toggleDrawer = () => {
         setOpen(!open);
+    };
+
+    useEffect(() => {
+        // Fetch all institutes
+        const fetchInstitutes = async () => {
+            try {
+                const response = await axios.get('/api/institutes');
+                setInstitutes(response.data);
+            } catch (error) {
+                console.error('Error fetching institutes', error);
+            }
+        };
+
+        fetchInstitutes();
+    }, []);
+
+    const handleInstituteSelect = (institute) => {
+        // Navigate to the specific institute's admin dashboard
+        navigate(`/admin/dashboard/${institute._id}`, { 
+            state: { 
+                institute, 
+                adminUser: {
+                    role: 'superadmin',
+                    assignedInstitutes: [institute._id]
+                }
+            } 
+        });
     };
 
     return (
@@ -82,15 +115,6 @@ const AdminDashboard = ({ institute, onBack }) => {
                 <CssBaseline />
                 <AppBar open={open} position='absolute'>
                     <Toolbar sx={{ pr: '24px' }}>
-                        {onBack && (
-                            <IconButton 
-                                color="inherit" 
-                                onClick={onBack}
-                                sx={{ mr: 2 }}
-                            >
-                                ← Back to Institutes
-                            </IconButton>
-                        )}
                         <IconButton
                             edge="start"
                             color="inherit"
@@ -110,7 +134,7 @@ const AdminDashboard = ({ institute, onBack }) => {
                             noWrap
                             sx={{ flexGrow: 1 }}
                         >
-                            {institute ? institute.schoolName : 'Institute Admin Dashboard'}
+                            Super Admin Dashboard
                         </Typography>
                         <AccountMenu />
                     </Toolbar>
@@ -129,9 +153,7 @@ const AdminDashboard = ({ institute, onBack }) => {
                 <Box component="main" sx={styles.boxStyled}>
                     <Toolbar />
                     <Routes>
-                        <Route path="/" element={<AdminHomePage institute={institute} />} />
-                        <Route path='*' element={<Navigate to="/" />} />
-                        <Route path="/Admin/dashboard" element={<AdminHomePage />} />
+                        <Route path="/SuperAdminHome" element={<SuperAdminHomePage />} />
                         <Route path="/Admin/profile" element={<AdminProfile />} />
                         <Route path="/Admin/complains" element={<SeeComplains />} />
 
@@ -179,28 +201,41 @@ const AdminDashboard = ({ institute, onBack }) => {
                         <Route path="/Admin/lead-management" element={<LeadManagement />} />
                         <Route path="/Admin/paystub" element={<PaystubManagement />} />
                         <Route path="/Admin/inventory" element={<Inventory />} />
-                        <Route path="/Admin/admission-form" element={<AdmissionForm />} />
+                        {/* <Route path="/Admin/admission-form" element={<AdmissionForm />} /> */}
                         <Route path="/Admin/enquiry-form" element={<EnquiryForm />} />
                         <Route path="/Admin/resource-management" element={<ResourceManagement />} />
                         <Route path="/Admin/question-paper-maker" element={<QuestionPaperMaker />} />
                         {/* <Route path="/Admin/notifications" element={<Notifications />} /> */}
                     </Routes>
+                    <Grid container spacing={3} sx={{ padding: 2 }}>
+                        <Grid item xs={12}>
+                            <Typography variant="h4">Manage Institutes</Typography>
+                        </Grid>
+                        {institutes.map(institute => (
+                            <Grid item xs={12} md={4} key={institute._id}>
+                                <Card>
+                                    <CardContent>
+                                        <Typography variant="h6">{institute.schoolName}</Typography>
+                                        <Typography variant="body2">{institute.instituteAddress}</Typography>
+                                        <Button 
+                                            variant="contained" 
+                                            color="primary"
+                                            onClick={() => handleInstituteSelect(institute)}
+                                        >
+                                            Access Dashboard
+                                        </Button>
+                                    </CardContent>
+                                </Card>
+                            </Grid>
+                        ))}
+                    </Grid>
                 </Box>
             </Box>
         </>
     );
 }
 
-AdminDashboard.propTypes = {
-    institute: PropTypes.shape({
-        _id: PropTypes.string,
-        schoolName: PropTypes.string,
-        instituteAddress: PropTypes.string
-    }),
-    onBack: PropTypes.func
-};
-
-export default AdminDashboard
+export default SuperAdminDashboard;
 
 const styles = {
     boxStyled: {

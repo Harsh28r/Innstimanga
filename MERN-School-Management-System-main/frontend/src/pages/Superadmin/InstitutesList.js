@@ -1,8 +1,17 @@
+import React from 'react';
 import { Building2, Users, GraduationCap, CheckCircle, XCircle } from 'lucide-react';
 import { mockInstitutes } from '../../data/mockUsers.js';
 import { Institute } from '../../types/auth';
+import { useNavigate } from 'react-router-dom';
 
-function InstitutesList({ onSelectInstitute }) {
+const InstitutesList = () => {
+  const navigate = useNavigate();
+
+  const handleManageInstitute = (adminId) => {
+    // Navigate to Manage Institute which will then redirect to Admin Dashboard
+    navigate(`/manage-institute/${adminId}`);
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -15,7 +24,7 @@ function InstitutesList({ onSelectInstitute }) {
           <div
             key={institute.id}
             className="bg-white rounded-lg border p-6 hover:shadow-md transition-shadow cursor-pointer"
-            onClick={() => onSelectInstitute(institute)}
+            onClick={() => handleManageInstitute(institute.id)}
           >
             <div className="flex items-start justify-between">
               <div className="flex-1">
@@ -49,7 +58,7 @@ function InstitutesList({ onSelectInstitute }) {
               className="mt-4 w-full py-2 px-4 bg-blue-50 text-blue-600 rounded-md text-sm font-medium hover:bg-blue-100 transition-colors"
               onClick={(e) => {
                 e.stopPropagation();
-                onSelectInstitute(institute);
+                handleManageInstitute(institute.id);
               }}
             >
               Manage Institute
@@ -59,6 +68,6 @@ function InstitutesList({ onSelectInstitute }) {
       </div>
     </div>
   );
-}
+};
 
-export { InstitutesList };
+export default InstitutesList;

@@ -6,7 +6,7 @@ import { underControl } from '../../../redux/userRelated/userSlice';
 import { CircularProgress } from '@mui/material';
 import Popup from '../../../components/Popup';
 
-const AddNotice = () => {
+export default function AddNotice() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { status, response, error } = useSelector(state => state.user);
@@ -76,6 +76,4 @@ const AddNotice = () => {
       <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
     </>
   );
-};
-
-export default AddNotice;
+}

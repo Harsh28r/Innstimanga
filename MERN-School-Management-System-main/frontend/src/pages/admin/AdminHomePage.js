@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from 'react';
 import { Container, Grid, Paper } from '@mui/material'
 import SeeNotice from '../../components/SeeNotice';
 import Students from "../../assets/img1.png";
@@ -7,33 +8,81 @@ import Fees from "../../assets/img4.png";
 import styled from 'styled-components';
 import CountUp from 'react-countup';
 import { useDispatch, useSelector } from 'react-redux';
-import { useEffect } from 'react';
 import { getAllSclasses } from '../../redux/sclassRelated/sclassHandle';
 import { getAllStudents } from '../../redux/studentRelated/studentHandle';
 import { getAllTeachers } from '../../redux/teacherRelated/teacherHandle';
+import { AdminDashboard } from '../admin/AdminDashboard.js';
 
-const AdminHomePage = () => {
+const AdminHomePage = ({ institute }) => {
     const dispatch = useDispatch();
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    const { currentUser } = useSelector(state => state.user);
     const { studentsList } = useSelector((state) => state.student);
     const { sclassesList } = useSelector((state) => state.sclass);
     const { teachersList } = useSelector((state) => state.teacher);
 
-    const { currentUser } = useSelector(state => state.user)
-
-    const adminID = currentUser && currentUser.school ? currentUser.school._id : null;
+    // Get adminID from either institute prop or currentUser
+    const adminID = institute?._id || currentUser?._id;
 
     useEffect(() => {
-        dispatch(getAllStudents(adminID));
-        dispatch(getAllSclasses(adminID, "Sclass"));
-        dispatch(getAllTeachers(adminID));
+        const fetchData = async () => {
+            if (!adminID) {
+                setError('No valid admin ID found');
+                setIsLoading(false);
+                return;
+            }
+            
+            try {
+                setIsLoading(true);
+                await Promise.all([
+                    dispatch(getAllStudents(adminID)),
+                    dispatch(getAllSclasses(adminID, "Sclass")),
+                    dispatch(getAllTeachers(adminID))
+                ]);
+                setIsLoading(false);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                setError('Failed to fetch data');
+                setIsLoading(false);
+            }
+        };
+
+        fetchData();
     }, [adminID, dispatch]);
 
-    const numberOfStudents = studentsList ? studentsList.length : 0;
-    const numberOfClasses = sclassesList ? sclassesList.length : 0;
-    const numberOfTeachers = teachersList ? teachersList.length : 0;
+    // Safely calculate numbers
+    const numberOfStudents = studentsList?.length || 0;
+    const numberOfClasses = sclassesList?.length || 0;
+    const numberOfTeachers = teachersList?.length || 0;
+
+    // Error boundary component
+    if (error) {
+        return (
+            <div className="error-container">
+                <h2>Error Loading Data</h2>
+                <p>{error}</p>
+                <button onClick={() => window.location.reload()}>
+                    Retry
+                </button>
+            </div>
+        );
+    }
+
+    // Loading state
+    if (isLoading) {
+        return <div>Loading...</div>;
+    }
 
     return (
         <>
+            {institute && (
+                <InstituteHeader>
+                    <h2>Welcome to {institute.schoolName}</h2>
+                    <p>Location: {institute.instituteAddress}</p>
+                </InstituteHeader>
+            )}
             <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
                 <Grid container spacing={3}>
                     <Grid item xs={12} md={3} lg={3}>
@@ -82,7 +131,6 @@ const AdminHomePage = () => {
     );
 };
 
-
 const StyledPaper = styled(Paper)`
   padding: 16px;
   display: flex;
@@ -100,6 +148,12 @@ const Title = styled.p`
 const Data = styled(CountUp)`
   font-size: calc(1.3rem + .6vw);
   color: green;
+`;
+
+const InstituteHeader = styled.div`
+  text-align: center;
+  margin-top: 20px;
+  margin-bottom: 20px;
 `;
 
 export default AdminHomePage

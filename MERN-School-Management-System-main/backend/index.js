@@ -9,6 +9,7 @@ const Fee = require('./models/Fee') // Import the Fee model
 const Enquiry = require('./models/Enquiry.js')
 const authRoutes = require('./routes/auth');
 const timetableRouter = require('./routes/timetable');
+const emailVerificationRoutes = require('./routes/emailVerification'); // Import email verification routes
 
 const { fetchRegisteredData} = require('../backend/controllers/admin-controller.js');
 
@@ -28,7 +29,7 @@ let classes = [
     { id: 2, time: '10:00 AM', subject: 'Science', teacher: 'Ms. Johnson' },
     { id: 3, time: '11:00 AM', subject: 'History', teacher: 'Mr. Brown' },
 ];
-
+app.use('/api/auth', authRoutes);
 // Endpoint to get classes
 app.get('/api/classes', (req, res) => {
     res.json(classes);
@@ -121,6 +122,8 @@ app.post('/enquiry', async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 });
+
+app.use('/api/email-verification', emailVerificationRoutes); // Add email verification routes
 
 mongoose
     .connect(process.env.MONGO_URL, {

@@ -9,8 +9,11 @@ import LoginPage from './pages/LoginPage';
 import AdminRegisterPage from './pages/admin/AdminRegisterPage';
 import  ParentsRegisterPage  from './pages/parents/ParentsRegisterPage'
 import ChooseUser from './pages/ChooseUser';
-import SuperAdminDashboard from './pages/Superadmin/superadminDashboard'
+import SuperAdminDashboard from './pages/Superadmin/SuperDashboard'
 import SuperAdmin from './pages/Superadmin/superadmin'
+import SuperAdminLoginForm from './pages/SuperAdminLogin'
+import  ParentsLoginPage from './pages/parents/ParentsLoginPage'
+import ParentDashboard from './pages/parents/ParentsDasboard'
 
 const App = () => {
   const { currentRole } = useSelector(state => state.user);
@@ -23,21 +26,32 @@ const App = () => {
           <Route path="/choose" element={<ChooseUser visitor="normal" />} />
           <Route path="/chooseasguest" element={<ChooseUser visitor="guest" />} />
 
+
           <Route path="/Adminlogin" element={<LoginPage role="Admin" />} />
           <Route path="/Studentlogin" element={<LoginPage role="Student" />} />
           <Route path="/Teacherlogin" element={<LoginPage role="Teacher " />} />
-          <Route path="/Parentslogin" element={<LoginPage role=" Parent" />} />
+          {/* <Route path="/Parentslogin" element={<LoginPage role=" Parent"  />} /> */}
+         
+
 
 
           <Route path="/Adminregister" element={<AdminRegisterPage  />} />
           <Route path="/Parentsregister" element={<  ParentsRegisterPage />} />
-          <Route path="/Super" element={<   SuperAdmin/>} />
-          <Route path="/superadmin/dashboard/:id" element={<SuperAdminDashboard/>} />
+          <Route path="/Super" element={<   SuperAdmin/> } />
+          <Route path="/superadmin/dashboard/:id/*" element={<SuperAdminDashboard/> } />
+          
+          <Route path="/superadminlogin/*" element={<SuperAdminLoginForm/>} />
+          
+          
+
 
           
 
           <Route path='*' element={<Navigate to="/" />} />
-          <Route path="/SuperAdminDashboard/*" element={<SuperAdminDashboard />} />
+          <Route path="/SuperAdminDashboard/*" element={<SuperAdminDashboard />} /> 
+          <Route path="/ParentsLogin" element={<ParentsLoginPage />} /> 
+          <Route path="/ParentDashboard" element={<ParentDashboard />} /> 
+
         </Routes>}
 
       {currentRole === "Admin" &&

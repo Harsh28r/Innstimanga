@@ -1,102 +1,66 @@
+// routes/auth.js
 const express = require('express');
+const User = require('../models/userSchema');
 const router = express.Router();
-const nodemailer = require('nodemailer');
+const bcrypt = require('bcrypt');
 
-// Generate OTP
-const generateOTP = () => {
-    return Math.floor(1000 + Math.random() * 9000);
-};
+router.post('/register', async (req, res) => {
+    const { name, email, password, role, childRollNo, aadharNo } = req.body;
 
-// Store the generated OTPs in memory (you can use a database in production)
-const otpStore = new Map();
-
-// OTP expiration time (in milliseconds)
-const OTP_EXPIRATION_TIME = 5 * 60 * 1000; // 5 minutes
-
-// Rate limiting configuration
-const MAX_REQUESTS_PER_HOUR = 5;
-const requestCounts = new Map();
-
-// Send OTP via Email
-router.post('/sendOTP', (req, res) => {
-    const { email } = req.body;
-
-    // Validate email format
-    if (!isValidEmail(email)) {
-        return res.status(400).json({ error: 'Invalid email format' });
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+        return res.status(400).json({ success: false, message: 'User already exists' });
     }
 
-    // Check rate limiting
-    const currentTime = Date.now();
-    const requestCount = requestCounts.get(email) || 0;
-    if (requestCount >= MAX_REQUESTS_PER_HOUR) {
-        return res.status(429).json({ error: 'Too many requests. Please try again later.' });
-    }
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    const otp = generateOTP();
-
-    // Send OTP to the user's email
-    const transporter = nodemailer.createTransport({
-        service: 'Gmail',
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASSWORD
-        }
+    // Create a new user
+    const user = new User({
+        name,
+        email,
+        password: hashedPassword,
+        role,
+        childRollNo,
+        aadharNo,
     });
 
-    const mailOptions = {
-        from: process.env.EMAIL_USER,
-        to: email,
-        subject: 'OTP for Email Verification',
-        text: `Your OTP is: ${otp}`
-    };
-
-    transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            console.log(error);
-            res.status(500).json({ error: 'Failed to send OTP' });
-        } else {
-            // Store the OTP and its expiration time
-            otpStore.set(email, { otp, expiresAt: currentTime + OTP_EXPIRATION_TIME });
-
-            // Update rate limiting count
-            requestCounts.set(email, requestCount + 1);
-
-            res.status(200).json({ message: 'OTP sent successfully' });
-        }
-    });
-});
-
-// Verify OTP
-router.post('/verifyOTP', (req, res) => {
-    const { email, otp } = req.body;
-
-    // Validate email and OTP format
-    if (!isValidEmail(email) || !isValidOTP(otp)) {
-        return res.status(400).json({ error: 'Invalid email or OTP format' });
-    }
-
-    const storedOTP = otpStore.get(email);
-
-    if (storedOTP && storedOTP.otp === parseInt(otp) && Date.now() <= storedOTP.expiresAt) {
-        // OTP matches and is not expired
-        otpStore.delete(email); // Remove the OTP after successful verification
-        res.status(200).json({ message: 'Email verified successfully' });
-    } else {
-        res.status(400).json({ error: 'Invalid or expired OTP' });
+    try {
+        await user.save();
+        res.status(201).json({ success: true, message: 'User registered successfully' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Error registering user' });
     }
 });
 
-// Helper functions
-function isValidEmail(email) {
-    // Implement email validation logic
-    // Return true if email is valid, false otherwise
-}
+router.get('/register', (req, res) => {
+    // You can send a response or render a registration form here
+    res.status(200).json({ message: 'Registration endpoint' });
+});
 
-function isValidOTP(otp) {
-    // Implement OTP validation logic
-    // Return true if OTP is valid, false otherwise
-}
+router.post('/login', async (req, res) => {
+    const { email, password } = req.body;
+
+    // Check if user exists
+    const user = await User.findOne({ email });
+    if (!user) {
+        return res.status(400).json({ success: false, message: 'Invalid credentials' });
+    }
+
+    // Check if password is correct
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+        return res.status(400).json({ success: false, message: 'Invalid credentials' });
+    }
+
+    // Successful login
+    res.status(200).json({ success: true, message: 'Login successful', user });
+});
+
+router.get('/login', (req, res) => {
+    // You can send a response or render a login form here
+    res.status(200).json({ message: 'Login endpoint' });
+});
 
 module.exports = router;
-

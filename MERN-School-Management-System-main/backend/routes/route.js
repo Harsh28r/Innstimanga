@@ -251,5 +251,42 @@ router.delete('/inventory/:id', async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 });
+// In your backend routes
+router.post('/superadmin/institute/:id/features', async (req, res) => {
+    const { instituteId } = req.params;
+    const { features } = req.body;
+  
+    try {
+      // Update institute's feature permissions
+      const updatedInstitute = await Institute.findByIdAndUpdate(
+        instituteId, 
+        { 
+          featurePermissions: features 
+        },
+        { new: true }
+      );
+  
+      res.json(updatedInstitute);
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to update features' });
+    }
+  });
+  
+  // Impersonation route
+  router.post('/superadmin/impersonate/:adminId', async (req, res) => {
+    const { adminId } = req.params;
+    
+    try {
+      // Generate a temporary token for the admin
+      const tempToken = generateTempAdminToken(adminId);
+      
+      res.json({ 
+        token: tempToken,
+        redirectUrl: `/admin-dashboard/${adminId}`
+      });
+    } catch (error) {
+      res.status(500).json({ message: 'Impersonation failed' });
+    }
+  });
 
 module.exports = router;

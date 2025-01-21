@@ -10,6 +10,8 @@ import { LightPurpleButton } from '../../components/buttonStyles';
 import { registerUser } from '../../redux/userRelated/userHandle';
 import styled from 'styled-components';
 import Popup from '../../components/Popup';
+import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
+import { auth } from '../../firebaseConfig'; // Import the auth instance
 
 const defaultTheme = createTheme();
 
@@ -33,7 +35,7 @@ const AdminRegisterPage = () => {
     const [instituteAddress, setInstituteAddress] = useState("");
     const role = "Admin"
 
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         event.preventDefault();
 
         const name = event.target.adminName.value;
@@ -52,7 +54,22 @@ const AdminRegisterPage = () => {
 
         const fields = { name, email, password, role, schoolName, instituteAddress }
         setLoader(true)
-        dispatch(registerUser(fields, role))
+
+        try {
+            // Create user with email and password
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+
+            // Send email verification
+            await sendEmailVerification(user);
+            // Dispatch registration action
+            dispatch(registerUser(fields, role));
+        } catch (error) {
+            console.error("Error during registration:", error);
+            setLoader(false);
+            setMessage("Registration failed. Please try again later.");
+            setShowPopup(true);
+        }
     };
 
     const handleInputChange = (event) => {

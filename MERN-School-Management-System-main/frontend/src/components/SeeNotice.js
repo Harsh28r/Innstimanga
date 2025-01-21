@@ -11,13 +11,15 @@ const SeeNotice = () => {
     const { noticesList, loading, error, response } = useSelector((state) => state.notice);
 
     useEffect(() => {
-        if (currentRole === "Admin") {
-            dispatch(getAllNotices(currentUser._id, "Notice"));
+        if (currentUser && currentRole) {
+            if (currentRole === "Admin" && currentUser._id) {
+                dispatch(getAllNotices(currentUser._id, "Notice"));
+            }
+            else if (currentUser.school && currentUser.school._id) {
+                dispatch(getAllNotices(currentUser.school._id, "Notice"));
+            }
         }
-        else {
-            dispatch(getAllNotices(currentUser.school._id, "Notice"));
-        }
-    }, [dispatch]);
+    }, [dispatch, currentUser, currentRole]);
 
     if (error) {
         console.log(error);
@@ -29,7 +31,7 @@ const SeeNotice = () => {
         { id: 'date', label: 'Date', minWidth: 170 },
     ];
 
-    const noticeRows = noticesList.map((notice) => {
+    const noticeRows = Array.isArray(noticesList) ? noticesList.map((notice) => {
         const date = new Date(notice.date);
         const dateString = date.toString() !== "Invalid Date" ? date.toISOString().substring(0, 10) : "Invalid Date";
         return {
@@ -38,25 +40,23 @@ const SeeNotice = () => {
             date: dateString,
             id: notice._id,
         };
-    });
+    }) : [];
+
     return (
         <div style={{ marginTop: '50px', marginRight: '20px' }}>
             {loading ? (
                 <div style={{ fontSize: '20px' }}>Loading...</div>
-            ) : response ? (
+            ) : response || !noticeRows.length ? (
                 <div style={{ fontSize: '20px' }}>No Notices to Show Right Now</div>
             ) : (
                 <>
                     <h3 style={{ fontSize: '30px', marginBottom: '40px' }}>Notices</h3>
                     <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-                        {Array.isArray(noticesList) && noticesList.length > 0 &&
-                            <TableViewTemplate columns={noticeColumns} rows={noticeRows} />
-                        }
+                        <TableViewTemplate columns={noticeColumns} rows={noticeRows} />
                     </Paper>
                 </>
             )}
         </div>
-
     )
 }
 

@@ -7,9 +7,10 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import bgpic from "../../assets/designlogin.jpg"
 import { LightPurpleButton } from '../../components/buttonStyles';
-import { registerUser } from '../../redux/ParentsRelated/ParentsHandle';
+// import { registerUser } from '../../redux/ParentsRelated/ParentsHandle';
 import styled from 'styled-components';
 import Popup from '../../components/Popup';
+import { getAuth, createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth"; // Import Firebase Auth
 
 const defaultTheme = createTheme();
 
@@ -54,19 +55,37 @@ const ParentsRegisterPage = () => {
         setLoader(true);
 
         try {
-            console.log("Attempting to register user with data:", fields);
-            const response = await registerUser(fields, role);
+            const auth = getAuth(); // Initialize Firebase Auth
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password); // Create user with Firebase
+            const user = userCredential.user;
 
-            console.log("Registration response:", response);
+            // Check if user is valid and send email verification
+            if (user) {
+                await sendEmailVerification(user); // Use the correct method for email verification
+                console.log("Verification email sent to:", email);
 
-            if (response.success) {
-                setMessage("Registration successful");
-            } else {
-                setMessage(response.message);
+                // Send user data to your API
+                const apiResponse = await fetch('http://localhost:5000/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(fields),
+                });
+
+                const apiData = await apiResponse.json();
+                console.log("API response:", apiData);
             }
+
+            // User registered
+            console.log("User registered:", user);
+            setMessage("Registration successful. Please check your email for verification.");
+            setTimeout(() => {
+                navigate('/ParentsLogin'); // Redirect to login page after 2 seconds
+            }, 2000);
         } catch (error) {
             console.error("Error during registration:", error);
-            setMessage("An error occurred during registration");
+            setMessage(error.message);
         }
 
         setLoader(false);
@@ -79,6 +98,50 @@ const ParentsRegisterPage = () => {
         if (name === 'adminName') setAdminNameError(false);
         if (name === 'childRollNo') setChildRollNoError(false);
         if (name === 'aadharNo') setAadharNoError(false);
+    };
+
+    const handleLogin = async (event) => {
+        event.preventDefault();
+
+        const email = event.target.email.value;
+        const password = event.target.password.value;
+        const rollNumber = event.target.rollNumber.value;
+        const studentName = event.target.studentName.value;
+
+        console.log("Submitting login with fields:", { email, password, rollNumber, studentName, role: 'Parent' });
+
+        if (!email || !password) {
+            console.log("Login data incomplete. Please fill in all fields.");
+            return;
+        }
+
+        const fields = { email, password, rollNumber, studentName };
+        setLoader(true);
+
+        try {
+            console.log("Attempting to login with data:", fields);
+            const response = await fetch('http://localhost:5000/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(fields),
+            }).then(res => res.json());
+
+            console.log("Login response:", response);
+
+            if (response.success) {
+                setMessage("Login successful");
+                // Handle successful login (e.g., navigate to dashboard)
+            } else {
+                setMessage(response.message);
+            }
+        } catch (error) {
+            console.error("Error during login:", error);
+            setMessage("An error occurred during login");
+        }
+
+        setLoader(false);
     };
 
     useEffect(() => {
@@ -213,7 +276,7 @@ const ParentsRegisterPage = () => {
                                     Already have an account?
                                 </Grid>
                                 <Grid item sx={{ ml: 2 }}>
-                                    <StyledLink to="/Adminlogin">
+                                    <StyledLink to="/ParentsLogin">
                                         Log in
                                     </StyledLink>
                                 </Grid>
@@ -248,3 +311,7 @@ const StyledLink = styled(Link)`
   text-decoration: none;
   color: #7f56da;
 `;
+
+
+
+

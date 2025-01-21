@@ -6,6 +6,7 @@ const Teacher = require('../models/teacherSchema.js');
 const Subject = require('../models/subjectSchema.js');
 const Notice = require('../models/noticeSchema.js');
 const Complain = require('../models/complainSchema.js');
+const { sendEmailVerification } = require('../controllers/emailVerificationController');
 
 // const adminRegister = async (req, res) => {
 //     try {
@@ -73,6 +74,7 @@ const adminRegister = async (req, res) => {
         else {
             let result = await admin.save();
             result.password = undefined;
+            await sendEmailVerification(req.body.email);
             res.send(result);
         }
     } catch (err) {

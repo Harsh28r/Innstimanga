@@ -1,4 +1,5 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import axios from "axios";
 
 const initialState = {
     studentsList: [],
@@ -6,7 +7,27 @@ const initialState = {
     error: null,
     response: null,
     statestatus: "idle",
+    studentData: null,
+    status: 'idle',
 };
+
+export const getAllStudents = createAsyncThunk(
+    'student/getAllStudents',
+    async (adminID, { rejectWithValue }) => {
+        try {
+            if (!adminID) {
+                return rejectWithValue('No admin ID provided');
+            }
+            const response = await axios.get(`http://localhost:5000/Students/${adminID}`);
+            return response.data;
+        } catch (error) {
+            return rejectWithValue({
+                message: error.message,
+                status: error.response?.status
+            });
+        }
+    }
+);
 
 const studentSlice = createSlice({
     name: 'student',
@@ -33,7 +54,7 @@ const studentSlice = createSlice({
             state.error = null;
         },
         getError: (state, action) => {
-            state.loading = false;
+            state.status = 'error';
             state.error = action.payload;
         },
         underStudentControl: (state) => {
@@ -41,8 +62,27 @@ const studentSlice = createSlice({
             state.response = null;
             state.error = null;
             state.statestatus = "idle";
+        },
+        setStudentData: (state, action) => {
+            state.studentData = action.payload;
         }
     },
+    extraReducers: (builder) => {
+        builder
+            .addCase(getAllStudents.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(getAllStudents.fulfilled, (state, action) => {
+                state.loading = false;
+                state.studentsList = action.payload;
+                state.error = null;
+            })
+            .addCase(getAllStudents.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            });
+    }
 });
 
 export const {
@@ -52,6 +92,7 @@ export const {
     getError,
     underStudentControl,
     stuffDone,
+    setStudentData,
 } = studentSlice.actions;
 
 export const studentReducer = studentSlice.reducer;

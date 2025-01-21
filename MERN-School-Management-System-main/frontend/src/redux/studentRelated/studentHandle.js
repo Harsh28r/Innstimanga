@@ -19,7 +19,11 @@ export const getAllStudents = (id) => async (dispatch) => {
             dispatch(getSuccess(result.data));
         }
     } catch (error) {
-        dispatch(getError(error));
+        dispatch(getError({
+            message: error.message,
+            status: error.response?.status,
+            data: error.response?.data
+        }));
     }
 }
 
@@ -36,7 +40,11 @@ export const updateStudentFields = (id, fields, address) => async (dispatch) => 
             dispatch(stuffDone());
         }
     } catch (error) {
-        dispatch(getError(error));
+        dispatch(getError({
+            message: error.message,
+            status: error.response?.status,
+            data: error.response?.data
+        }));
     }
 }
 
@@ -51,6 +59,10 @@ export const removeStuff = (id, address) => async (dispatch) => {
             dispatch(stuffDone());
         }
     } catch (error) {
-        dispatch(getError(error));
+        dispatch(getError({
+            message: error.message,
+            status: error.response?.status,
+            data: error.response?.data
+        }));
     }
 }
