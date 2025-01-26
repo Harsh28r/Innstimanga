@@ -1,106 +1,138 @@
-import React, { useEffect, useState } from 'react'
-import { Container, Grid, Paper, Typography } from '@mui/material'
-import { useDispatch, useSelector } from 'react-redux';
-import { calculateOverallAttendancePercentage } from '../../components/attendanceCalculator';
-import CustomPieChart from '../../components/CustomPieChart';
-import { getUserDetails } from '../../redux/userRelated/userHandle';
-import styled from 'styled-components';
-import SeeNotice from '../../components/SeeNotice';
-import CountUp from 'react-countup';
+import React, { useEffect, useState } from "react";
+import { Box, Container, Grid, Paper, Typography } from "@mui/material";
+import { useDispatch, useSelector } from "react-redux";
+import { calculateOverallAttendancePercentage } from "../../components/attendanceCalculator";
+import CustomPieChart from "../../components/CustomPieChart";
+import { getUserDetails } from "../../redux/userRelated/userHandle";
+import styled from "styled-components";
+import SeeNotice from "../../components/SeeNotice";
+import CountUp from "react-countup";
 import Subject from "../../assets/subjects.svg";
 import Assignment from "../../assets/assignment.svg";
-import { getSubjectList } from '../../redux/sclassRelated/sclassHandle';
+import { getSubjectList } from "../../redux/sclassRelated/sclassHandle";
 
 const StudentHomePage = () => {
-    const dispatch = useDispatch();
+  const dispatch = useDispatch();
 
-    const { userDetails, currentUser, loading, response } = useSelector((state) => state.user);
-    const { subjectsList } = useSelector((state) => state.sclass);
+  const { userDetails, currentUser, loading, response } = useSelector(
+    (state) => state.user
+  );
 
-    const [subjectAttendance, setSubjectAttendance] = useState([]);
+  const { isApproved } = currentUser;
+  const { subjectsList } = useSelector((state) => state.sclass);
 
-    const classID = currentUser.sclassName._id
+  const [subjectAttendance, setSubjectAttendance] = useState([]);
 
-    useEffect(() => {
-        dispatch(getUserDetails(currentUser._id, "Student"));
-        dispatch(getSubjectList(classID, "ClassSubjects"));
-    }, [dispatch, currentUser._id, classID]);
+  // const classID = currentUser.sclassName._id
 
-    const numberOfSubjects = subjectsList && subjectsList.length;
+  useEffect(() => {
+    dispatch(getUserDetails(currentUser._id, "Student"));
+    // dispatch(getSubjectList(classID, "ClassSubjects"));
+  }, [dispatch, currentUser._id]);
 
-    useEffect(() => {
-        if (userDetails) {
-            setSubjectAttendance(userDetails.attendance || []);
-        }
-    }, [userDetails])
+  const numberOfSubjects = subjectsList && subjectsList.length;
 
-    const overallAttendancePercentage = calculateOverallAttendancePercentage(subjectAttendance);
-    const overallAbsentPercentage = 100 - overallAttendancePercentage;
+  useEffect(() => {
+    if (userDetails) {
+      setSubjectAttendance(userDetails.attendance || []);
+    }
+  }, [userDetails]);
 
-    const chartData = [
-        { name: 'Present', value: overallAttendancePercentage },
-        { name: 'Absent', value: overallAbsentPercentage }
-    ];
-    return (
-        <>
-            <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-                <Grid container spacing={3}>
-                    <Grid item xs={12} md={3} lg={3}>
-                        <StyledPaper>
-                            <img src={Subject} alt="Subjects" />
-                            <Title>
-                                Total Subjects
-                            </Title>
-                            <Data start={0} end={numberOfSubjects} duration={2.5} />
-                        </StyledPaper>
-                    </Grid>
-                    <Grid item xs={12} md={3} lg={3}>
-                        <StyledPaper>
-                            <img src={Assignment} alt="Assignments" />
-                            <Title>
-                                Total Assignments
-                            </Title>
-                            <Data start={0} end={15} duration={4} />
-                        </StyledPaper>
-                    </Grid>
-                    <Grid item xs={12} md={4} lg={3}>
-                        <ChartContainer>
-                            {
-                                response ?
-                                    <Typography variant="h6">No Attendance Found</Typography>
-                                    :
-                                    <>
-                                        {loading
-                                            ? (
-                                                <Typography variant="h6">Loading...</Typography>
-                                            )
-                                            :
-                                            <>
-                                                {
-                                                    subjectAttendance && Array.isArray(subjectAttendance) && subjectAttendance.length > 0 ? (
-                                                        <>
-                                                            <CustomPieChart data={chartData} />
-                                                        </>
-                                                    )
-                                                        :
-                                                        <Typography variant="h6">No Attendance Found</Typography>
-                                                }
-                                            </>
-                                        }
-                                    </>
-                            }
-                        </ChartContainer>
-                    </Grid>
-                    <Grid item xs={12}>
-                        <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
-                            <SeeNotice />
-                        </Paper>
-                    </Grid>
-                </Grid>
-            </Container>
-        </>
-    )
-}
+  const overallAttendancePercentage =
+    calculateOverallAttendancePercentage(subjectAttendance);
+  const overallAbsentPercentage = 100 - overallAttendancePercentage;
+
+  const chartData = [
+    { name: "Present", value: overallAttendancePercentage },
+    { name: "Absent", value: overallAbsentPercentage },
+  ];
+  return (
+    <>
+      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+        {!isApproved ? (
+          <Box
+            sx={{
+              minHeight: "60vh",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Box
+              sx={{
+                textAlign: "center",
+                padding: 4,
+                borderRadius: 4,
+                boxShadow: 3,
+                border: "1px solid #e0e0e0",
+              }}
+            >
+              <Typography
+                sx={{ fontWeight: "bold" }}
+                variant="h6"
+                color="primary"
+              >
+                Please wait for the admin's approval
+              </Typography>
+              <Typography variant="body1" color="textSecondary" mt={3}>
+                Kindly refresh the page to get the latest status
+              </Typography>
+            </Box>
+          </Box>
+        ) : (
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={3} lg={3}>
+              <StyledPaper>
+                <img src={Subject} alt="Subjects" />
+                <Title>Total Subjects</Title>
+                <Data start={0} end={numberOfSubjects} duration={2.5} />
+              </StyledPaper>
+            </Grid>
+            <Grid item xs={12} md={3} lg={3}>
+              <StyledPaper>
+                <img src={Assignment} alt="Assignments" />
+                <Title>Total Assignments</Title>
+                <Data start={0} end={15} duration={4} />
+              </StyledPaper>
+            </Grid>
+            <Grid item xs={12} md={4} lg={3}>
+              <ChartContainer>
+                {response ? (
+                  <Typography variant="h6">No Attendance Found</Typography>
+                ) : (
+                  <>
+                    {loading ? (
+                      <Typography variant="h6">Loading...</Typography>
+                    ) : (
+                      <>
+                        {subjectAttendance &&
+                        Array.isArray(subjectAttendance) &&
+                        subjectAttendance.length > 0 ? (
+                          <>
+                            <CustomPieChart data={chartData} />
+                          </>
+                        ) : (
+                          <Typography variant="h6">
+                            No Attendance Found
+                          </Typography>
+                        )}
+                      </>
+                    )}
+                  </>
+                )}
+              </ChartContainer>
+            </Grid>
+            <Grid item xs={12}>
+              <Paper sx={{ p: 2, display: "flex", flexDirection: "column" }}>
+                <SeeNotice />
+              </Paper>
+            </Grid>
+          </Grid>
+        )}
+      </Container>
+    </>
+  );
+};
 
 const ChartContainer = styled.div`
   padding: 2px;
@@ -127,10 +159,8 @@ const Title = styled.p`
 `;
 
 const Data = styled(CountUp)`
-  font-size: calc(1.3rem + .6vw);
+  font-size: calc(1.3rem + 0.6vw);
   color: green;
 `;
 
-
-
-export default StudentHomePage
+export default StudentHomePage;

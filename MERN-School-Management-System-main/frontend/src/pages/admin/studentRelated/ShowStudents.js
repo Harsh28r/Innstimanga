@@ -64,7 +64,7 @@ const ShowStudents = () => {
         return {
             name: student.name,
             rollNum: student.rollNum,
-            sclassName: student.sclassName.sclassName,
+            // sclassName: student.sclassName.sclassName,
             id: student._id,
         };
     })

@@ -150,12 +150,15 @@ const getAdminDetail = async (req, res) => {
 // }
 
 const fetchRegisteredData = async (req, res) => {
-    try {
-        const data = await Admin.find();
-        res.send(data);
-    } catch (err) {
-        res.status(500).json(err);
+  try {
+    const data = await Admin.find({}, { password: 0 }); //db query
+    if (!data) {
+      return res.status(404).json({ message: "Institues are not found" });
     }
+    res.status(200).send(data);
+  } catch (err) {
+    res.status(500).json(err);
+  }
 };
 
 // module.exports = { adminRegister, adminLogIn, getAdminDetail, deleteAdmin, updateAdmin };

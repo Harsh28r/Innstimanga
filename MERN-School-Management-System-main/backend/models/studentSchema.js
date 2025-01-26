@@ -7,7 +7,17 @@ const studentSchema = new mongoose.Schema({
     },
     rollNum: {
         type: Number,
-        required: true
+        // required: true
+    },
+    email:{
+        type:String,
+        required:true,
+        unique:true
+    },
+    aadharNumber:{
+        type:String,
+        required:true,
+        unique:true
     },
     password: {
         type: String,
@@ -16,7 +26,7 @@ const studentSchema = new mongoose.Schema({
     sclassName: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'sclass',
-        required: true,
+        // required: true,
     },
     school: {
         type: mongoose.Schema.Types.ObjectId,
@@ -26,6 +36,10 @@ const studentSchema = new mongoose.Schema({
     role: {
         type: String,
         default: "Student"
+    },
+    isApproved:{
+        type: Boolean,
+        default:false
     },
     examResult: [
         {

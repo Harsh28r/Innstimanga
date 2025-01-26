@@ -3,57 +3,115 @@ const Student = require('../models/studentSchema.js');
 const Subject = require('../models/subjectSchema.js');
 
 const studentRegister = async (req, res) => {
-    try {
-        const salt = await bcrypt.genSalt(10);
-        const hashedPass = await bcrypt.hash(req.body.password, salt);
+  try {
+    const { name, email, school, aadharNumber, password } = req.body;
 
-        const existingStudent = await Student.findOne({
-            rollNum: req.body.rollNum,
-            school: req.body.adminID,
-            sclassName: req.body.sclassName,
-        });
-
-        if (existingStudent) {
-            res.send({ message: 'Roll Number already exists' });
-        }
-        else {
-            const student = new Student({
-                ...req.body,
-                school: req.body.adminID,
-                password: hashedPass
-            });
-
-            let result = await student.save();
-
-            result.password = undefined;
-            res.send(result);
-        }
-    } catch (err) {
-        res.status(500).json(err);
+    if (!name) {
+      return res.status(400).json({ message: "name is Required" });
     }
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is Required" });
+    }
+
+    if (!school) {
+      return res.status(400).json({ message: "School is Required" });
+    }
+
+    if (!aadharNumber || aadharNumber.length !== 12) {
+      return res.status(400).json({ message: "Invalid Aadhar Number" });
+    }
+
+    const user = await Student.findOne({ email });
+
+    if (user) {
+      return res.status(409).json({ message: "Email already exists" });
+    }
+
+    if (!password) {
+      return res.status(400).json({ message: "Password is Required" });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const newStudent = new Student({
+      name,
+      email,
+      school,
+      aadharNumber,
+      password: hashedPassword,
+    });
+
+    await newStudent.save();
+
+    return res
+      .status(200)
+      .json({ message: "Student Register Successfully" });
+  } catch (err) {
+    res.status(500).json(err);
+  }
 };
 
 const studentLogIn = async (req, res) => {
-    try {
-        let student = await Student.findOne({ rollNum: req.body.rollNum, name: req.body.studentName });
-        if (student) {
-            const validated = await bcrypt.compare(req.body.password, student.password);
-            if (validated) {
-                student = await student.populate("school", "schoolName")
-                student = await student.populate("sclassName", "sclassName")
-                student.password = undefined;
-                student.examResult = undefined;
-                student.attendance = undefined;
-                res.send(student);
-            } else {
-                res.send({ message: "Invalid password" });
-            }
-        } else {
-            res.send({ message: "Student not found" });
-        }
-    } catch (err) {
-        res.status(500).json(err);
+  try {
+    const { email, password } = req.body;
+    
+
+    if (!email || !password) {
+      return res.status(400).json({ message: "Invalid Crendentials" });
     }
+
+    let student = await Student.findOne({ email });
+
+    if (!student) {
+      return res.status(404).json({ message: "Student Not Found" });
+    }
+
+    const validatedPass = await bcrypt.compare(password, student.password);
+
+    if (!validatedPass) {
+      return res.status(401).json({ message: "Password is Not Matched" });
+    }
+
+    let copyStudent = await Student.findOne({ email }, { password: 0 });
+
+    return res
+      .status(200)
+      .send(copyStudent)
+      .json({ message: "Login Successfully" });
+  } catch (err) {
+    res.status(500).json(err);
+  }
+};
+
+const updateApproveStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { isApprovedStatus } = req.body;
+
+    if (!id) {
+      return res.status(400).json({ message: "id is Required" });
+    }
+
+    const student = await Student.findByIdAndUpdate(
+      id,
+      { $set: { isApproved: !isApprovedStatus } },
+      { new: true }
+    );
+
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    const resultObj = { isApproved: student.isApproved };
+
+    return res
+      .status(200)
+      .json({ data: resultObj, message: "Status Updated Successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Error" });
+  }
 };
 
 const getStudents = async (req, res) => {
@@ -76,7 +134,6 @@ const getStudentDetail = async (req, res) => {
     try {
         let student = await Student.findById(req.params.id)
             .populate("school", "schoolName")
-            .populate("sclassName", "sclassName")
             .populate("examResult.subName", "subName")
             .populate("attendance.subName", "subName sessions");
         if (student) {
@@ -275,6 +332,7 @@ const removeStudentAttendance = async (req, res) => {
 module.exports = {
     studentRegister,
     studentLogIn,
+    updateApproveStatus,
     getStudents,
     getStudentDetail,
     deleteStudents,

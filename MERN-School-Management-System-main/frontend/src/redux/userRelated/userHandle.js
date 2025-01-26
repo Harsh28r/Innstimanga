@@ -22,6 +22,7 @@ export const loginUser = (fields, role) => async (dispatch) => {
         const result = await axios.post(`${REACT_APP_BASE_URL}/${formattedRole}Login`, fields, {
             headers: { 'Content-Type': 'application/json' },
         });
+
         if (result.data.role) {
             dispatch(authSuccess(result.data));
         } else {
@@ -74,8 +75,10 @@ export const registerUser = (fields, role) => async (dispatch) => {
 };
 
 export const getUserDetails = (userId, address) => async (dispatch) => {
+    console.log("userId" , userId)
     try {
         const result = await axios.get(`${process.env.REACT_APP_BASE_URL}/${address}/${userId}`);
+        console.log(result)
         if (result.data) {
             dispatch({ type: 'user/getDetails', payload: result.data });
         }

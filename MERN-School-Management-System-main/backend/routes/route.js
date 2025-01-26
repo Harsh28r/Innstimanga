@@ -13,6 +13,7 @@ const { noticeCreate, noticeList, deleteNotices, deleteNotice, updateNotice } = 
 const {
     studentRegister,
     studentLogIn,
+    updateApproveStatus,
     getStudents,
     getStudentDetail,
     deleteStudents,
@@ -46,11 +47,12 @@ router.post('/sendOTP', userController.sendOTP);
 
 // Student
 
-router.post('/StudentReg', studentRegister);
+router.post('/StudentRegister', studentRegister);
 router.post('/StudentLogin', studentLogIn)
 
 router.get("/Students/:id", getStudents)
 router.get("/Student/:id", getStudentDetail)
+router.put("/Student/:id" , updateApproveStatus)
 
 router.delete("/Students/:id", deleteStudents)
 router.delete("/StudentsClass/:id", deleteStudentsByClass)
